@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TekBot Admin — Planning</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Space+Grotesk:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'primary': '#c3f5ff', 'primary-container': '#00e5ff', 'secondary': '#f4bb92',
+            'secondary-container': '#653d1e', 'tertiary': '#d2f5e0', 'error': '#ffb4ab',
+            'background': '#111415', 'surface-container-lowest': '#0c0e10',
+            'surface-container-low': '#1a1c1e', 'surface-container': '#1e2022',
+            'surface-container-high': '#282a2c', 'surface-container-highest': '#333537',
+            'on-surface': '#e0e3e4', 'on-surface-variant': '#bfc8ca',
+            'outline': '#849396', 'outline-variant': '#3b494c',
+          },
+          fontFamily: { serif: ['"Noto Serif"', 'serif'], label: ['"Space Grotesk"', 'sans-serif'], body: ['Inter', 'sans-serif'] },
+          borderRadius: { DEFAULT: '0.25rem', lg: '0.5rem', xl: '1rem', full: '9999px' }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #111415; font-family: 'Inter', sans-serif; }
+    .material-symbols-rounded { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .blueprint-grid { background-image: radial-gradient(circle, rgba(132,147,150,0.05) 1px, transparent 1px); background-size: 24px 24px; }
+    aside { width: 220px; min-height: 100vh; position: sticky; top: 0; }
+    input, select, textarea { background-color: transparent; }
+  </style>
+</head>
+<body class="min-h-screen bg-background text-on-surface flex">
+
+<aside class="bg-surface-container-low border-r border-outline-variant/20 flex-shrink-0 flex flex-col">
+  <div class="p-5 border-b border-outline-variant/20">
+    <a href="/dashboard.html" class="flex items-center gap-2 mb-6 text-on-surface-variant hover:text-primary transition-colors text-xs font-label">
+      <span class="material-symbols-rounded text-sm">arrow_back</span> Retour au site
+    </a>
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 bg-error/20 border border-error/30 rounded flex items-center justify-center">
+        <span class="material-symbols-rounded text-error text-base">admin_panel_settings</span>
+      </div>
+      <div>
+        <div class="font-serif font-bold text-on-surface text-sm italic">Admin</div>
+        <div class="text-error text-xs font-label">PANNEAU DE CONTRÔLE</div>
+      </div>
+    </div>
+  </div>
+  <nav class="flex-1 p-3 space-y-0.5">
+    <a href="/admin/index.html" class="flex items-center gap-3 px-3 py-2.5 rounded text-sm text-on-surface-variant hover:bg-surface-container-high transition-all"><span class="material-symbols-rounded text-xl">dashboard</span> Dashboard</a>
+    <a href="/admin/users.html" class="flex items-center gap-3 px-3 py-2.5 rounded text-sm text-on-surface-variant hover:bg-surface-container-high transition-all"><span class="material-symbols-rounded text-xl">group</span> Membres</a>
+    <a href="/admin/schedule.html" class="flex items-center gap-3 px-3 py-2.5 rounded text-sm bg-primary/10 text-primary font-medium"><span class="material-symbols-rounded text-xl">calendar_month</span> Planning</a>
+    <a href="/admin/training.html" class="flex items-center gap-3 px-3 py-2.5 rounded text-sm text-on-surface-variant hover:bg-surface-container-high transition-all"><span class="material-symbols-rounded text-xl">school</span> Formation</a>
+    <a href="/admin/projects.html" class="flex items-center gap-3 px-3 py-2.5 rounded text-sm text-on-surface-variant hover:bg-surface-container-high transition-all"><span class="material-symbols-rounded text-xl">rocket_launch</span> Projets</a>
+    <a href="/admin/theme.html" class="flex items-center gap-3 px-3 py-2.5 rounded text-sm text-on-surface-variant hover:bg-surface-container-high transition-all"><span class="material-symbols-rounded text-xl">palette</span> Thème</a>
+  </nav>
+</aside>
+
+<div class="flex-1 min-w-0">
+  <header class="sticky top-0 z-20 bg-background/90 backdrop-blur-sm border-b border-outline-variant/20 px-6 py-3 flex items-center justify-between">
+    <div>
+      <div class="font-serif font-bold text-on-surface italic">Gestion du Planning</div>
+      <div class="text-on-surface-variant text-xs font-label">[ CALENDRIER DU ROYAUME ]</div>
+    </div>
+    <button onclick="openCreateActivity()" class="flex items-center gap-2 bg-primary-container text-background font-semibold px-4 py-2 rounded text-sm font-label hover:brightness-110 transition-all">
+      <span class="material-symbols-rounded text-base">add</span> Nouvelle activité
+    </button>
+  </header>
+
+  <main class="p-6 blueprint-grid">
+    <div id="activities-list" class="space-y-3">
+      <div class="text-center py-8 text-on-surface-variant">
+        <span class="material-symbols-rounded text-4xl opacity-40 animate-spin">progress_activity</span>
+        <p class="text-sm mt-2 font-label">Chargement...</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Create/Edit Activity Modal -->
+<div id="activity-modal" class="hidden fixed inset-0 z-50 flex items-start justify-center p-6 bg-background/80 backdrop-blur-sm overflow-y-auto">
+  <div class="bg-surface-container-low border border-outline-variant/30 rounded-xl p-6 max-w-xl w-full shadow-2xl mt-4">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-serif font-bold text-on-surface text-lg" id="modal-title">Nouvelle activité</h3>
+      <button onclick="closeModal()" class="text-on-surface-variant hover:text-on-surface">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </div>
+    <form id="activity-form" class="space-y-4">
+      <div>
+        <label class="block text-xs font-label text-on-surface-variant uppercase tracking-wider mb-1.5">Titre *</label>
+        <input type="text" id="f-title" required placeholder="Titre de l'activité"
+          class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-3 py-2.5 text-on-surface text-sm focus:outline-none focus:border-primary/60 transition-all">
+      </div>
+      <div>
+        <label class="block text-xs font-label text-on-surface-variant uppercase tracking-wider mb-1.5">Description</label>
+        <textarea id="f-desc" rows="2" placeholder="Description de l'activité..."
+          class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-3 py-2.5 text-on-surface text-sm focus:outline-none focus:border-primary/60 transition-all resize-none"></textarea>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-label text-on-surface-variant uppercase tracking-wider mb-1.5">Type</label>
+          <select id="f-type" class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-3 py-2.5 text-on-surface text-sm focus:outline-none focus:border-primary/60 transition-all">
+            <option value="meeting">Réunion / Meet</option>
+            <option value="install">Installation</option>
+            <option value="training">Formation</option>
+            <option value="quiz">Quiz</option>
+            <option value="project">Projet</option>
+            <option value="other">Autre</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-label text-on-surface-variant uppercase tracking-wider mb-1.5">Spécialisation cible</label>
+          <select id="f-spec" class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-3 py-2.5 text-on-surface text-sm focus:outline-none focus:border-primary/60 transition-all">
+            <option value="">Toutes</option>
+            <option value="3d">Modélisation 3D</option>
+            <option value="electronics">Électronique</option>
+            <option value="it">Informatique</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-label text-on-surface-variant uppercase tracking-wider mb-1.5">Début</label>
+          <input type="datetime-local" id="f-start"
+            class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-3 py-2.5 text-on-surface text-sm focus:outline-none focus:border-primary/60 transition-all">
+        </div>
+        <div>
+          <label class="block text-xs font-label text-on-surface-variant uppercase tracking-wider mb-1.5">Fin</label>
+          <input type="datetime-local" id="f-end"
+            class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-3 py-2.5 text-on-surface text-sm focus:outline-none focus:border-primary/60 transition-all">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-label text-on-surface-variant uppercase tracking-wider mb-1.5">Lien URL</label>
+        <input type="url" id="f-url" placeholder="https://meet.google.com/..."
+          class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-3 py-2.5 text-on-surface text-sm focus:outline-none focus:border-primary/60 transition-all">
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-label text-on-surface-variant uppercase tracking-wider mb-1.5">Personnage présentateur</label>
+          <select id="f-char" class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-3 py-2.5 text-on-surface text-sm focus:outline-none focus:border-primary/60 transition-all">
+            <option value="senku">🧪 Senku</option>
+            <option value="kaseki">🗿 Kaseki</option>
+            <option value="chrome">⚡ Chrome</option>
+            <option value="gen">🃏 Gen</option>
+            <option value="kohaku">⚔️ Kohaku</option>
+          </select>
+        </div>
+        <div class="flex items-end pb-2.5">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="f-mandatory" class="w-4 h-4 accent-error">
+            <span class="text-sm text-on-surface-variant font-label">Activité obligatoire</span>
+          </label>
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-label text-on-surface-variant uppercase tracking-wider mb-1.5">Dialogue du personnage</label>
+        <textarea id="f-dialogue" rows="3" placeholder="Ce que le personnage dit pour présenter cette activité..."
+          class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-3 py-2.5 text-on-surface text-sm focus:outline-none focus:border-primary/60 transition-all resize-none"></textarea>
+      </div>
+      <div id="form-error" class="hidden bg-error/10 border border-error/30 rounded p-3 text-error text-sm font-label"></div>
+      <div class="flex gap-3 pt-2">
+        <button type="button" onclick="closeModal()" class="flex-1 bg-surface-container border border-outline-variant/20 text-on-surface-variant rounded py-2.5 text-sm font-label hover:bg-surface-container-high transition-all">Annuler</button>
+        <button type="submit" id="submit-btn" class="flex-1 bg-primary-container text-background font-semibold rounded py-2.5 text-sm font-label hover:brightness-110 transition-all">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  loadTheme();
+
+  let activities = [];
+  let editingId = null;
+
+  const TYPE_CONFIG = {
+    meeting: { icon: 'videocam', color: '#ffb4ab', label: 'Réunion' },
+    install: { icon: 'download', color: '#f4bb92', label: 'Installation' },
+    training: { icon: 'school', color: '#d2f5e0', label: 'Formation' },
+    quiz: { icon: 'quiz', color: '#c3f5ff', label: 'Quiz' },
+    project: { icon: 'build', color: '#f4bb92', label: 'Projet' },
+    other: { icon: 'event', color: '#bfc8ca', label: 'Autre' }
+  };
+
+  async function init() {
+    await requireAdmin();
+    await loadActivities();
+  }
+
+  async function loadActivities() {
+    try {
+      activities = await API.get('/api/schedule/all');
+      renderActivities();
+    } catch(e) { showToast('Erreur de chargement', 'error'); }
+  }
+
+  function renderActivities() {
+    const container = document.getElementById('activities-list');
+    if (activities.length === 0) {
+      container.innerHTML = '<div class="text-center py-8 text-on-surface-variant text-sm font-label">Aucune activité</div>';
+      return;
+    }
+
+    const sorted = [...activities].sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
+    container.innerHTML = sorted.map(a => {
+      const type = TYPE_CONFIG[a.type] || TYPE_CONFIG.other;
+      const date = new Date(a.start_time);
+      const char = CHARACTERS[a.presenter_character] || CHARACTERS.senku;
+      const SPEC = { '3d': '3D', 'electronics': 'Électro', 'it': 'IT' };
+
+      return `<div class="bg-surface-container-low border border-outline-variant/20 rounded-xl p-4 flex items-start gap-4">
+        <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center" style="background: ${type.color}15; border: 1px solid ${type.color}30">
+          <span class="material-symbols-rounded" style="color: ${type.color}">${type.icon}</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="flex items-center gap-2 mb-0.5">
+                <span class="text-xs font-label uppercase tracking-wider" style="color: ${type.color}">${type.label}</span>
+                ${a.is_mandatory ? '<span class="text-xs font-label text-error flex items-center gap-0.5"><span class="material-symbols-rounded text-xs">lock</span>Obligatoire</span>' : '<span class="text-xs font-label text-on-surface-variant">Flexible</span>'}
+                ${a.target_specialization ? `<span class="text-xs font-label text-secondary">${SPEC[a.target_specialization] || a.target_specialization}</span>` : ''}
+              </div>
+              <h3 class="font-medium text-on-surface">${a.title}</h3>
+            </div>
+            <div class="text-xs text-on-surface-variant font-label text-right flex-shrink-0">
+              ${date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}<br>
+              ${date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+            </div>
+          </div>
+          ${a.description ? `<p class="text-on-surface-variant text-xs mt-1 line-clamp-1">${a.description}</p>` : ''}
+          <div class="flex items-center gap-3 mt-2">
+            <span class="text-xs text-on-surface-variant font-label">${char.emoji} ${char.name}</span>
+            ${a.url ? `<a href="${a.url}" target="_blank" class="text-xs text-primary hover:underline">Lien</a>` : ''}
+          </div>
+        </div>
+        <div class="flex gap-1 flex-shrink-0">
+          <button onclick="editActivity(${a.id})" class="p-1.5 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-rounded text-lg">edit</span></button>
+          <button onclick="deleteActivity(${a.id}, '${a.title.replace(/'/g, "\\'")}')" class="p-1.5 text-on-surface-variant hover:text-error transition-colors"><span class="material-symbols-rounded text-lg">delete</span></button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function formatForInput(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    const pad = n => n.toString().padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function openCreateActivity() {
+    editingId = null;
+    document.getElementById('modal-title').textContent = 'Nouvelle activité';
+    document.getElementById('activity-form').reset();
+    document.getElementById('form-error').classList.add('hidden');
+    document.getElementById('activity-modal').classList.remove('hidden');
+  }
+
+  function editActivity(id) {
+    const a = activities.find(x => x.id === id);
+    if (!a) return;
+    editingId = id;
+    document.getElementById('modal-title').textContent = 'Modifier l\'activité';
+    document.getElementById('f-title').value = a.title;
+    document.getElementById('f-desc').value = a.description || '';
+    document.getElementById('f-type').value = a.type;
+    document.getElementById('f-spec').value = a.target_specialization || '';
+    document.getElementById('f-start').value = formatForInput(a.start_time);
+    document.getElementById('f-end').value = formatForInput(a.end_time);
+    document.getElementById('f-url').value = a.url || '';
+    document.getElementById('f-char').value = a.presenter_character || 'senku';
+    document.getElementById('f-mandatory').checked = !!a.is_mandatory;
+    document.getElementById('f-dialogue').value = a.dialogue_text || '';
+    document.getElementById('form-error').classList.add('hidden');
+    document.getElementById('activity-modal').classList.remove('hidden');
+  }
+
+  function closeModal() { document.getElementById('activity-modal').classList.add('hidden'); }
+
+  document.getElementById('activity-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Enregistrement...';
+
+    const data = {
+      title: document.getElementById('f-title').value,
+      description: document.getElementById('f-desc').value,
+      type: document.getElementById('f-type').value,
+      target_specialization: document.getElementById('f-spec').value || null,
+      start_time: new Date(document.getElementById('f-start').value).toISOString(),
+      end_time: new Date(document.getElementById('f-end').value).toISOString(),
+      url: document.getElementById('f-url').value || null,
+      presenter_character: document.getElementById('f-char').value,
+      is_mandatory: document.getElementById('f-mandatory').checked,
+      dialogue_text: document.getElementById('f-dialogue').value
+    };
+
+    try {
+      if (editingId) await API.put(`/api/schedule/${editingId}`, data);
+      else await API.post('/api/schedule', data);
+      showToast('Activité enregistrée !', 'success');
+      closeModal();
+      loadActivities();
+    } catch(e) {
+      document.getElementById('form-error').textContent = e.message;
+      document.getElementById('form-error').classList.remove('hidden');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Enregistrer';
+    }
+  });
+
+  async function deleteActivity(id, title) {
+    if (!confirm(`Supprimer "${title}" ?`)) return;
+    try {
+      await API.delete(`/api/schedule/${id}`);
+      showToast('Activité supprimée', 'success');
+      loadActivities();
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  init();
+</script>
+</body>
+</html>

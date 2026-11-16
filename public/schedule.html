@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TekBot — Planning</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Space+Grotesk:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'primary': '#c3f5ff', 'primary-container': '#00e5ff', 'secondary': '#f4bb92',
+            'secondary-container': '#653d1e', 'tertiary': '#d2f5e0', 'error': '#ffb4ab',
+            'background': '#111415', 'surface-container-lowest': '#0c0e10',
+            'surface-container-low': '#1a1c1e', 'surface-container': '#1e2022',
+            'surface-container-high': '#282a2c', 'surface-container-highest': '#333537',
+            'on-surface': '#e0e3e4', 'on-surface-variant': '#bfc8ca',
+            'outline': '#849396', 'outline-variant': '#3b494c',
+          },
+          fontFamily: { serif: ['"Noto Serif"', 'serif'], label: ['"Space Grotesk"', 'sans-serif'], body: ['Inter', 'sans-serif'] },
+          borderRadius: { DEFAULT: '0.25rem', lg: '0.5rem', xl: '1rem', full: '9999px' }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #111415; font-family: 'Inter', sans-serif; }
+    .material-symbols-rounded { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .blueprint-grid {
+      background-image: linear-gradient(rgba(59,73,76,0.06) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(59,73,76,0.06) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    #sidebar { width: 260px; min-height: 100vh; position: sticky; top: 0; }
+    @media (max-width: 768px) { #sidebar { display: none; } }
+    .activity-card { transition: all 0.2s ease; }
+    .activity-card:hover { transform: translateX(2px); }
+    input[type="datetime-local"] { color-scheme: dark; }
+    input, select, textarea { background-color: transparent; }
+  </style>
+</head>
+<body class="min-h-screen bg-background text-on-surface flex">
+
+<div id="sidebar" class="bg-surface-container-low border-r border-outline-variant/20 flex-shrink-0"></div>
+
+<div class="flex-1 min-w-0">
+  <header class="sticky top-0 z-20 bg-background/90 backdrop-blur-sm border-b border-outline-variant/20 px-6 py-3 flex items-center justify-between">
+    <div>
+      <div class="font-serif font-bold text-on-surface italic">Planning</div>
+      <div class="text-on-surface-variant text-xs font-label">[ JOURNAL DE QUÊTES ]</div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="btn-create-activity" onclick="openCreateActivity()" class="hidden flex items-center gap-2 bg-primary-container text-background font-semibold px-3 py-1.5 rounded text-sm font-label hover:brightness-110 transition-all">
+        <span class="material-symbols-rounded text-base">add</span> Créer activité
+      </button>
+      <div class="flex bg-surface-container-low border border-outline-variant/20 rounded overflow-hidden">
+        <button id="view-list" onclick="setView('list')" class="px-3 py-1.5 text-xs font-label text-primary bg-primary/10">
+          <span class="material-symbols-rounded text-base align-middle">view_list</span>
+        </button>
+        <button id="view-week" onclick="setView('week')" class="px-3 py-1.5 text-xs font-label text-on-surface-variant">
+          <span class="material-symbols-rounded text-base align-middle">calendar_view_week</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="p-6 blueprint-grid min-h-[calc(100vh-57px)]">
+    <div class="flex flex-wrap gap-2 mb-6">
+      <button onclick="filterActivities('all')" id="filter-all" class="filter-btn active px-3 py-1.5 rounded text-xs font-label border border-primary/30 bg-primary/10 text-primary">Toutes</button>
+      <button onclick="filterActivities('meeting')" id="filter-meeting" class="filter-btn px-3 py-1.5 rounded text-xs font-label border border-outline-variant/30 text-on-surface-variant hover:border-primary/30 hover:text-primary transition-all">Réunions</button>
+      <button onclick="filterActivities('install')" id="filter-install" class="filter-btn px-3 py-1.5 rounded text-xs font-label border border-outline-variant/30 text-on-surface-variant hover:border-primary/30 hover:text-primary transition-all">Installations</button>
+      <button onclick="filterActivities('training')" id="filter-training" class="filter-btn px-3 py-1.5 rounded text-xs font-label border border-outline-variant/30 text-on-surface-variant hover:border-primary/30 hover:text-primary transition-all">Formations</button>
+      <div class="ml-auto flex items-center gap-2">
+        <span class="flex items-center gap-1 text-xs font-label text-error"><span class="material-symbols-rounded text-sm">lock</span> Obligatoire</span>
+        <span class="flex items-center gap-1 text-xs font-label text-tertiary"><span class="material-symbols-rounded text-sm">swap_vert</span> Flexible</span>
+      </div>
+    </div>
+
+    <div id="list-view">
+      <div id="activities-list" class="space-y-3"></div>
+    </div>
+
+    <div id="week-view" class="hidden">
+      <div class="flex items-center gap-3 mb-4">
+        <button onclick="prevWeek()" class="p-2 bg-surface-container-low border border-outline-variant/20 rounded hover:border-primary/30 transition-all">
+          <span class="material-symbols-rounded text-on-surface-variant">chevron_left</span>
+        </button>
+        <div class="font-serif font-bold text-on-surface text-lg" id="week-label">Semaine courante</div>
+        <button onclick="nextWeek()" class="p-2 bg-surface-container-low border border-outline-variant/20 rounded hover:border-primary/30 transition-all">
+          <span class="material-symbols-rounded text-on-surface-variant">chevron_right</span>
+        </button>
+      </div>
+      <div id="week-grid" class="grid grid-cols-7 gap-2"></div>
+    </div>
+  </main>
+</div>
+
+<!-- Activity detail modal -->
+<div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-6 bg-background/80 backdrop-blur-sm">
+  <div class="bg-surface-container-low border border-outline-variant/30 rounded-xl p-6 max-w-lg w-full shadow-2xl">
+    <div class="flex items-start justify-between mb-4">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-rounded text-2xl" id="modal-icon">event</span>
+        <div>
+          <h3 class="font-serif font-bold text-on-surface text-lg" id="modal-title"></h3>
+          <div class="text-xs font-label text-on-surface-variant" id="modal-type"></div>
+        </div>
+      </div>
+      <button onclick="closeModal()" class="text-on-surface-variant hover:text-on-surface">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </div>
+
+    <div class="bg-surface-container border border-outline-variant/20 rounded p-4 mb-4 flex items-start gap-3">
+      <div class="text-2xl" id="modal-char-emoji">🧪</div>
+      <div class="flex-1">
+        <div class="text-xs font-label text-on-surface-variant mb-1" id="modal-char-name"></div>
+        <p class="text-on-surface text-sm leading-relaxed" id="modal-dialogue"></p>
+      </div>
+    </div>
+
+    <p class="text-on-surface-variant text-sm mb-4" id="modal-desc"></p>
+
+    <div class="flex items-center gap-3 text-xs font-label text-on-surface-variant mb-4">
+      <span class="material-symbols-rounded text-sm">schedule</span>
+      <span id="modal-date"></span>
+    </div>
+
+    <div class="flex gap-2 flex-wrap">
+      <a id="modal-link" href="#" target="_blank" class="hidden flex-1 flex items-center justify-center gap-2 bg-primary/10 text-primary border border-primary/30 rounded py-2 text-sm font-label hover:bg-primary/20 transition-all">
+        <span class="material-symbols-rounded text-base">open_in_new</span> Ouvrir
+      </a>
+      <button id="modal-reschedule" onclick="openReschedule()" class="hidden flex-1 flex items-center justify-center gap-2 bg-secondary/10 text-secondary border border-secondary/30 rounded py-2 text-sm font-label hover:bg-secondary/20 transition-all">
+        <span class="material-symbols-rounded text-base">swap_vert</span> Reporter
+      </button>
+      <button id="modal-complete" onclick="completeActivity()" class="flex-1 flex items-center justify-center gap-2 bg-tertiary/10 text-tertiary border border-tertiary/30 rounded py-2 text-sm font-label hover:bg-tertiary/20 transition-all">
+        <span class="material-symbols-rounded text-base">check_circle</span> Marquer complétée
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Reschedule modal -->
+<div id="reschedule-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-6 bg-background/80 backdrop-blur-sm">
+  <div class="bg-surface-container-low border border-outline-variant/30 rounded-xl p-6 max-w-md w-full shadow-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h3 class="font-serif font-bold text-on-surface text-lg">Reporter l'activité</h3>
+        <p class="text-on-surface-variant text-xs font-label mt-0.5">Choisissez votre créneau de réalisation</p>
+      </div>
+      <button onclick="closeReschedule()" class="text-on-surface-variant hover:text-on-surface">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </div>
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs font-label text-on-surface-variant uppercase tracking-wider mb-1.5">Début <span class="text-error">*</span></label>
+        <input type="datetime-local" id="rsch-start"
+          class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-3 py-2.5 text-on-surface text-sm focus:outline-none focus:border-primary/60 transition-all">
+      </div>
+      <div>
+        <label class="block text-xs font-label text-on-surface-variant uppercase tracking-wider mb-1.5">Fin <span class="text-error">*</span></label>
+        <input type="datetime-local" id="rsch-end"
+          class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-3 py-2.5 text-on-surface text-sm focus:outline-none focus:border-primary/60 transition-all">
+      </div>
+      <div id="rsch-error" class="hidden bg-error/10 border border-error/30 rounded p-3 text-error text-sm font-label"></div>
+    </div>
+    <div class="flex gap-3 mt-5">
+      <button onclick="closeReschedule()" class="flex-1 bg-surface-container border border-outline-variant/20 text-on-surface-variant rounded py-2.5 text-sm font-label hover:bg-surface-container-high transition-all">
+        Annuler
+      </button>
+      <button onclick="submitReschedule()" class="flex-1 bg-secondary/20 text-secondary border border-secondary/30 font-semibold rounded py-2.5 text-sm font-label hover:bg-secondary/30 transition-all">
+        <span class="material-symbols-rounded text-base align-middle">swap_vert</span> Confirmer le report
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Activity modal (Admin / Chef de projet) -->
+<div id="create-activity-modal" class="hidden fixed inset-0 z-50 flex items-start justify-center p-6 bg-background/80 backdrop-blur-sm overflow-y-auto">
+  <div class="bg-surface-container-low border border-outline-variant/30 rounded-xl p-6 max-w-xl w-full shadow-2xl mt-4">
+    <div class="flex items-center justify-between mb-5">
+      <div>
+        <h3 class="font-serif font-bold text-on-surface text-lg">Nouvelle activité</h3>
+        <p class="text-on-surface-variant text-xs font-label mt-0.5" id="create-activity-subtitle"></p>
+      </div>
+      <button onclick="closeCreateActivity()" class="text-on-surface-variant hover:text-on-surface">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </div>
+    <form id="create-activity-form" class="space-y-4" onsubmit="submitCreateActivity(event)">
+      <div>
+        <label class="block text-xs font-label text-on-surface-variant uppercase tracking-wider mb-1.5">Titre <span class="text-error">*</span></label>
+        <input type="text" id="ca-title" required placeholder="Titre de l'activité"
+          class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-3 py-2.5 text-on-surface text-sm focus:outline-none focus:border-primary/60 transition-all">
+      </div>
+      <div>
+        <label class="block text-xs font-label text-on-surface-variant uppercase tracking-wider mb-1.5">Description</label>
+        <textarea id="ca-desc" rows="2" placeholder="Description de l'activité..."
+          class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-3 py-2.5 text-on-surface text-sm focus:outline-none focus:border-primary/60 transition-all resize-none"></textarea>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-label text-on-surface-variant uppercase tracking-wider mb-1.5">Type</label>
+          <select id="ca-type" class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-3 py-2.5 text-on-surface text-sm focus:outline-none focus:border-primary/60 transition-all">
+            <option value="meeting">Réunion</option>
+            <option value="training">Formation</option>
+            <option value="install">Installation</option>
+            <option value="project">Projet</option>
+            <option value="other">Autre</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-label text-on-surface-variant uppercase tracking-wider mb-1.5">Pour qui</label>
+          <select id="ca-spec" class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-3 py-2.5 text-on-surface text-sm focus:outline-none focus:border-primary/60 transition-all">
+            <option value="">Tous les membres</option>
+            <option value="3d">Modélisation 3D</option>
+            <option value="electronics">Électronique</option>
+            <option value="it">Informatique</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-label text-on-surface-variant uppercase tracking-wider mb-1.5">Début <span class="text-error">*</span></label>
+          <input type="datetime-local" id="ca-start" required
+            class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-3 py-2.5 text-on-surface text-sm focus:outline-none focus:border-primary/60 transition-all">
+        </div>
+        <div>
+          <label class="block text-xs font-label text-on-surface-variant uppercase tracking-wider mb-1.5">Fin <span class="text-error">*</span></label>
+          <input type="datetime-local" id="ca-end" required
+            class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-3 py-2.5 text-on-surface text-sm focus:outline-none focus:border-primary/60 transition-all">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-label text-on-surface-variant uppercase tracking-wider mb-1.5">Lien (optionnel)</label>
+        <input type="url" id="ca-url" placeholder="https://..."
+          class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-3 py-2.5 text-on-surface text-sm focus:outline-none focus:border-primary/60 transition-all">
+      </div>
+      <div>
+        <label class="block text-xs font-label text-on-surface-variant uppercase tracking-wider mb-1.5">Message du personnage</label>
+        <textarea id="ca-dialogue" rows="2" placeholder="Texte motivationnel du personnage..."
+          class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-3 py-2.5 text-on-surface text-sm focus:outline-none focus:border-primary/60 transition-all resize-none"></textarea>
+      </div>
+      <div id="ca-mandatory-row" class="hidden flex items-center gap-3 bg-surface-container rounded p-3">
+        <input type="checkbox" id="ca-mandatory" class="w-4 h-4 accent-error">
+        <label for="ca-mandatory" class="text-sm text-on-surface-variant font-label">
+          <span class="text-error font-medium">Activité obligatoire</span> — les membres ne pourront pas la reporter
+        </label>
+      </div>
+      <div id="ca-error" class="hidden bg-error/10 border border-error/30 rounded p-3 text-error text-sm font-label"></div>
+      <div class="flex gap-3 pt-1">
+        <button type="button" onclick="closeCreateActivity()" class="flex-1 bg-surface-container border border-outline-variant/20 text-on-surface-variant rounded py-2.5 text-sm font-label hover:bg-surface-container-high transition-all">
+          Annuler
+        </button>
+        <button type="submit" id="ca-submit" class="flex-1 bg-primary-container text-background font-semibold rounded py-2.5 text-sm font-label hover:brightness-110 transition-all">
+          Créer l'activité
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  loadTheme();
+
+  let allActivities = [];
+  let currentFilter = 'all';
+  let currentView = 'list';
+  let currentWeekStart = getWeekStart(new Date());
+  let selectedActivityId = null;
+  let currentUser = null;
+
+  const TYPE_CONFIG = {
+    meeting: { icon: 'videocam', color: '#ffb4ab', label: 'Réunion' },
+    install: { icon: 'download', color: '#f4bb92', label: 'Installation' },
+    training: { icon: 'school', color: '#d2f5e0', label: 'Formation' },
+    quiz: { icon: 'quiz', color: '#c3f5ff', label: 'Quiz' },
+    project: { icon: 'build', color: '#f4bb92', label: 'Projet' },
+    other: { icon: 'event', color: '#bfc8ca', label: 'Activité' }
+  };
+
+  function getWeekStart(date) {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    d.setDate(diff);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
+  async function init() {
+    currentUser = await requireUser();
+    if (!currentUser) return;
+    initNav('/schedule.html', currentUser);
+
+    // Show create button for admin or project manager
+    if (currentUser.role === 'admin' || currentUser.is_project_manager) {
+      document.getElementById('btn-create-activity').classList.remove('hidden');
+    }
+
+    await loadActivities();
+  }
+
+  async function loadActivities() {
+    try {
+      allActivities = await API.get('/api/schedule');
+      renderList();
+    } catch(e) { showToast('Erreur de chargement', 'error'); }
+  }
+
+  function filterActivities(type) {
+    currentFilter = type;
+    document.querySelectorAll('.filter-btn').forEach(b => {
+      b.classList.remove('active', 'bg-primary/10', 'text-primary', 'border-primary/30');
+      b.classList.add('text-on-surface-variant', 'border-outline-variant/30');
+    });
+    const btn = document.getElementById(`filter-${type}`);
+    btn.classList.add('active', 'bg-primary/10', 'text-primary', 'border-primary/30');
+    btn.classList.remove('text-on-surface-variant', 'border-outline-variant/30');
+    renderList();
+    if (currentView === 'week') renderWeek();
+  }
+
+  function setView(v) {
+    currentView = v;
+    document.getElementById('list-view').classList.toggle('hidden', v !== 'list');
+    document.getElementById('week-view').classList.toggle('hidden', v !== 'week');
+    document.getElementById('view-list').className = v === 'list' ? 'px-3 py-1.5 text-xs font-label text-primary bg-primary/10' : 'px-3 py-1.5 text-xs font-label text-on-surface-variant';
+    document.getElementById('view-week').className = v === 'week' ? 'px-3 py-1.5 text-xs font-label text-primary bg-primary/10' : 'px-3 py-1.5 text-xs font-label text-on-surface-variant';
+    if (v === 'week') renderWeek();
+  }
+
+  function getFiltered() {
+    return currentFilter === 'all' ? allActivities : allActivities.filter(a => a.type === currentFilter);
+  }
+
+  function renderList() {
+    const activities = getFiltered().sort((a, b) => {
+      const ta = new Date(a.scheduled_start || a.start_time);
+      const tb = new Date(b.scheduled_start || b.start_time);
+      return ta - tb;
+    });
+
+    const now = new Date();
+    const upcoming = activities.filter(a => new Date(a.scheduled_start || a.start_time) >= now && !a.completed);
+    const past = activities.filter(a => new Date(a.scheduled_start || a.start_time) < now || a.completed);
+
+    let html = '';
+    if (upcoming.length > 0) {
+      html += `<div class="text-xs font-label text-on-surface-variant uppercase tracking-wider mb-3 flex items-center gap-2">
+        <span class="material-symbols-rounded text-sm">upcoming</span> À venir (${upcoming.length})
+      </div>`;
+      html += upcoming.map(a => renderActivityCard(a)).join('');
+    }
+    if (past.length > 0) {
+      html += `<div class="text-xs font-label text-on-surface-variant uppercase tracking-wider mt-6 mb-3 flex items-center gap-2">
+        <span class="material-symbols-rounded text-sm">history</span> Passées
+      </div>`;
+      html += past.map(a => renderActivityCard(a, true)).join('');
+    }
+    if (activities.length === 0) {
+      html = `<div class="text-center py-12 text-on-surface-variant">
+        <span class="material-symbols-rounded text-5xl opacity-40">event_busy</span>
+        <p class="text-sm mt-3 font-label">Aucune activité trouvée</p>
+      </div>`;
+    }
+
+    document.getElementById('activities-list').innerHTML = html;
+  }
+
+  function renderActivityCard(a, isPast = false) {
+    const type = TYPE_CONFIG[a.type] || TYPE_CONFIG.other;
+    const date = new Date(a.scheduled_start || a.start_time);
+    const char = CHARACTERS[a.presenter_character] || CHARACTERS.senku;
+
+    return `<div class="activity-card bg-surface-container-low border border-outline-variant/20 rounded-xl p-4 flex items-start gap-4 cursor-pointer hover:border-outline/40 transition-all ${isPast || a.completed ? 'opacity-60' : ''}" onclick="openModal(${a.id})">
+      <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center" style="background: ${type.color}15; border: 1px solid ${type.color}30">
+        <span class="material-symbols-rounded" style="color: ${type.color}">${type.icon}</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <div class="flex items-center gap-2 mb-1 flex-wrap">
+              <span class="text-xs font-label uppercase tracking-wider" style="color: ${type.color}">${type.label}</span>
+              ${a.is_mandatory ? '<span class="text-xs font-label text-error flex items-center gap-0.5"><span class="material-symbols-rounded text-xs">lock</span>Obligatoire</span>' : '<span class="text-xs font-label text-tertiary flex items-center gap-0.5"><span class="material-symbols-rounded text-xs">swap_vert</span>Flexible</span>'}
+              ${a.completed ? '<span class="text-xs font-label text-tertiary flex items-center gap-0.5"><span class="material-symbols-rounded text-xs">check_circle</span>Complétée</span>' : ''}
+            </div>
+            <h3 class="font-medium text-on-surface text-sm">${a.title}</h3>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <div class="text-xs text-on-surface-variant font-label">${date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</div>
+            <div class="text-xs text-on-surface-variant font-label">${date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</div>
+          </div>
+        </div>
+        ${a.description ? `<p class="text-xs text-on-surface-variant mt-1.5 line-clamp-1">${a.description}</p>` : ''}
+        <div class="flex items-center gap-3 mt-2">
+          <div class="flex items-center gap-1 text-xs text-on-surface-variant">
+            <span>${char.emoji}</span>
+            <span class="font-label">${char.name}</span>
+          </div>
+          ${a.url ? `<a href="${a.url}" target="_blank" onclick="event.stopPropagation()" class="text-xs text-primary hover:underline flex items-center gap-0.5 font-label">
+            <span class="material-symbols-rounded text-xs">open_in_new</span> Lien
+          </a>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function renderWeek() {
+    const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    const grid = document.getElementById('week-grid');
+    const ws = currentWeekStart;
+    const we = new Date(ws.getTime() + 6 * 24 * 60 * 60 * 1000);
+
+    document.getElementById('week-label').textContent =
+      ws.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) + ' — ' +
+      we.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    const filtered = getFiltered();
+    grid.innerHTML = days.map((day, i) => {
+      const dayDate = new Date(ws.getTime() + i * 24 * 60 * 60 * 1000);
+      const isToday = dayDate.toDateString() === new Date().toDateString();
+      const dayActivities = filtered.filter(a => {
+        const t = new Date(a.scheduled_start || a.start_time);
+        return t.toDateString() === dayDate.toDateString();
+      });
+
+      return `<div class="bg-surface-container-low border border-outline-variant/20 rounded-xl p-3 min-h-[160px] ${isToday ? 'border-primary/40' : ''}">
+        <div class="flex items-center justify-between mb-3">
+          <div class="font-label text-xs uppercase tracking-wide ${isToday ? 'text-primary' : 'text-on-surface-variant'}">${day}</div>
+          <div class="text-sm font-semibold ${isToday ? 'text-primary' : 'text-on-surface-variant'}">${dayDate.getDate()}</div>
+        </div>
+        <div class="space-y-1.5">
+          ${dayActivities.map(a => {
+            const type = TYPE_CONFIG[a.type] || TYPE_CONFIG.other;
+            return `<div class="px-2 py-1 rounded text-xs cursor-pointer truncate hover:opacity-80 transition-all" style="background: ${type.color}20; color: ${type.color}; border: 1px solid ${type.color}30" onclick="openModal(${a.id})">
+              ${a.is_mandatory ? '🔒 ' : ''}${a.title}
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function prevWeek() {
+    currentWeekStart = new Date(currentWeekStart.getTime() - 7 * 24 * 60 * 60 * 1000);
+    renderWeek();
+  }
+
+  function nextWeek() {
+    currentWeekStart = new Date(currentWeekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+    renderWeek();
+  }
+
+  function openModal(id) {
+    const a = allActivities.find(x => x.id === id);
+    if (!a) return;
+    selectedActivityId = id;
+
+    const type = TYPE_CONFIG[a.type] || TYPE_CONFIG.other;
+    const char = CHARACTERS[a.presenter_character] || CHARACTERS.senku;
+    const date = new Date(a.scheduled_start || a.start_time);
+    const endDate = new Date(a.scheduled_end || a.end_time);
+
+    document.getElementById('modal-icon').textContent = type.icon;
+    document.getElementById('modal-icon').style.color = type.color;
+    document.getElementById('modal-title').textContent = a.title;
+    document.getElementById('modal-type').textContent = `[ ${type.label.toUpperCase()} ${a.is_mandatory ? '— OBLIGATOIRE' : '— FLEXIBLE'} ]`;
+    document.getElementById('modal-char-emoji').textContent = char.emoji;
+    document.getElementById('modal-char-name').textContent = char.name + ' — ' + char.tagline;
+    document.getElementById('modal-dialogue').textContent = a.dialogue_text || 'Cette activité nécessite ton attention !';
+    document.getElementById('modal-desc').textContent = a.description || '';
+    document.getElementById('modal-date').textContent =
+      `${date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} de ${date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} à ${endDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+
+    const linkEl = document.getElementById('modal-link');
+    if (a.url) { linkEl.href = a.url; linkEl.classList.remove('hidden'); }
+    else linkEl.classList.add('hidden');
+
+    // Reporter button — only for non-mandatory, non-completed activities
+    const rescheduleBtn = document.getElementById('modal-reschedule');
+    if (!a.is_mandatory && !a.completed) {
+      rescheduleBtn.classList.remove('hidden');
+    } else {
+      rescheduleBtn.classList.add('hidden');
+    }
+
+    const completeBtn = document.getElementById('modal-complete');
+    completeBtn.disabled = a.completed;
+    if (a.completed) {
+      completeBtn.innerHTML = '<span class="material-symbols-rounded text-base">check_circle</span> Déjà complétée';
+      completeBtn.classList.add('opacity-50');
+    } else {
+      completeBtn.innerHTML = '<span class="material-symbols-rounded text-base">check_circle</span> Marquer complétée';
+      completeBtn.classList.remove('opacity-50');
+    }
+
+    document.getElementById('modal').classList.remove('hidden');
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.add('hidden');
+    selectedActivityId = null;
+  }
+
+  async function completeActivity() {
+    if (!selectedActivityId) return;
+    try {
+      await API.post(`/api/schedule/${selectedActivityId}/complete`);
+      showToast('Activité marquée comme complétée !', 'success');
+      closeModal();
+      loadActivities();
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  // ── Reschedule ──────────────────────────────────────────────────────────────
+  function openReschedule() {
+    const a = allActivities.find(x => x.id === selectedActivityId);
+    if (!a) return;
+
+    // Pre-fill with current scheduled time
+    const start = new Date(a.scheduled_start || a.start_time);
+    const end = new Date(a.scheduled_end || a.end_time);
+    document.getElementById('rsch-start').value = toLocalDateTimeInput(start);
+    document.getElementById('rsch-end').value = toLocalDateTimeInput(end);
+    document.getElementById('rsch-error').classList.add('hidden');
+
+    document.getElementById('modal').classList.add('hidden');
+    document.getElementById('reschedule-modal').classList.remove('hidden');
+  }
+
+  function closeReschedule() {
+    document.getElementById('reschedule-modal').classList.add('hidden');
+    if (selectedActivityId) document.getElementById('modal').classList.remove('hidden');
+  }
+
+  async function submitReschedule() {
+    const start = document.getElementById('rsch-start').value;
+    const end = document.getElementById('rsch-end').value;
+    const errEl = document.getElementById('rsch-error');
+
+    if (!start || !end) {
+      errEl.textContent = 'Veuillez renseigner un créneau de début et de fin.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+    if (new Date(end) <= new Date(start)) {
+      errEl.textContent = 'La fin doit être après le début.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    try {
+      await API.patch(`/api/schedule/${selectedActivityId}/move`, {
+        new_start: new Date(start).toISOString(),
+        new_end: new Date(end).toISOString()
+      });
+      showToast('Activité reportée !', 'success');
+      document.getElementById('reschedule-modal').classList.add('hidden');
+      selectedActivityId = null;
+      loadActivities();
+    } catch(e) {
+      errEl.textContent = e.message;
+      errEl.classList.remove('hidden');
+    }
+  }
+
+  // ── Create Activity (Admin / PM) ────────────────────────────────────────────
+  function openCreateActivity() {
+    document.getElementById('create-activity-form').reset();
+    document.getElementById('ca-error').classList.add('hidden');
+
+    const isAdmin = currentUser?.role === 'admin';
+    document.getElementById('create-activity-subtitle').textContent = isAdmin
+      ? 'En tant qu\'administrateur'
+      : `Chef de projet — ${(currentUser?.managed_projects || []).map(p => p.title).join(', ')}`;
+
+    // Only admins can set mandatory
+    const mandatoryRow = document.getElementById('ca-mandatory-row');
+    if (isAdmin) mandatoryRow.classList.remove('hidden');
+    else mandatoryRow.classList.add('hidden');
+
+    document.getElementById('create-activity-modal').classList.remove('hidden');
+  }
+
+  function closeCreateActivity() {
+    document.getElementById('create-activity-modal').classList.add('hidden');
+  }
+
+  async function submitCreateActivity(e) {
+    e.preventDefault();
+    const btn = document.getElementById('ca-submit');
+    const errEl = document.getElementById('ca-error');
+    btn.disabled = true;
+    btn.textContent = 'Création...';
+    errEl.classList.add('hidden');
+
+    const start = document.getElementById('ca-start').value;
+    const end = document.getElementById('ca-end').value;
+
+    if (new Date(end) <= new Date(start)) {
+      errEl.textContent = 'La fin doit être après le début.';
+      errEl.classList.remove('hidden');
+      btn.disabled = false;
+      btn.textContent = 'Créer l\'activité';
+      return;
+    }
+
+    try {
+      await API.post('/api/schedule', {
+        title: document.getElementById('ca-title').value,
+        description: document.getElementById('ca-desc').value,
+        type: document.getElementById('ca-type').value,
+        is_mandatory: document.getElementById('ca-mandatory').checked,
+        url: document.getElementById('ca-url').value || null,
+        start_time: new Date(start).toISOString(),
+        end_time: new Date(end).toISOString(),
+        dialogue_text: document.getElementById('ca-dialogue').value || null,
+        target_specialization: document.getElementById('ca-spec').value || null,
+        presenter_character: 'senku'
+      });
+      showToast('Activité créée !', 'success');
+      closeCreateActivity();
+      loadActivities();
+    } catch(e) {
+      errEl.textContent = e.message;
+      errEl.classList.remove('hidden');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Créer l\'activité';
+    }
+  }
+
+  // ── Helpers ─────────────────────────────────────────────────────────────────
+  function toLocalDateTimeInput(date) {
+    const pad = n => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  }
+
+  document.getElementById('modal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('modal')) closeModal();
+  });
+  document.getElementById('reschedule-modal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('reschedule-modal')) closeReschedule();
+  });
+  document.getElementById('create-activity-modal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('create-activity-modal')) closeCreateActivity();
+  });
+
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TekBot Admin — Thème</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Space+Grotesk:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'primary': '#c3f5ff', 'primary-container': '#00e5ff', 'secondary': '#f4bb92',
+            'secondary-container': '#653d1e', 'tertiary': '#d2f5e0', 'error': '#ffb4ab',
+            'background': '#111415', 'surface-container-lowest': '#0c0e10',
+            'surface-container-low': '#1a1c1e', 'surface-container': '#1e2022',
+            'surface-container-high': '#282a2c', 'surface-container-highest': '#333537',
+            'on-surface': '#e0e3e4', 'on-surface-variant': '#bfc8ca',
+            'outline': '#849396', 'outline-variant': '#3b494c',
+          },
+          fontFamily: { serif: ['"Noto Serif"', 'serif'], label: ['"Space Grotesk"', 'sans-serif'], body: ['Inter', 'sans-serif'] },
+          borderRadius: { DEFAULT: '0.25rem', lg: '0.5rem', xl: '1rem', full: '9999px' }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #111415; font-family: 'Inter', sans-serif; }
+    .material-symbols-rounded { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .blueprint-grid { background-image: radial-gradient(circle, rgba(132,147,150,0.05) 1px, transparent 1px); background-size: 24px 24px; }
+    aside { width: 220px; min-height: 100vh; position: sticky; top: 0; }
+    input[type="color"] { -webkit-appearance: none; border: none; padding: 0; cursor: pointer; }
+    input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+    input[type="color"]::-webkit-color-swatch { border: none; border-radius: 4px; }
+  </style>
+</head>
+<body class="min-h-screen bg-background text-on-surface flex">
+
+<aside class="bg-surface-container-low border-r border-outline-variant/20 flex-shrink-0 flex flex-col">
+  <div class="p-5 border-b border-outline-variant/20">
+    <a href="/dashboard.html" class="flex items-center gap-2 mb-6 text-on-surface-variant hover:text-primary transition-colors text-xs font-label">
+      <span class="material-symbols-rounded text-sm">arrow_back</span> Retour au site
+    </a>
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 bg-error/20 border border-error/30 rounded flex items-center justify-center">
+        <span class="material-symbols-rounded text-error text-base">admin_panel_settings</span>
+      </div>
+      <div><div class="font-serif font-bold text-on-surface text-sm italic">Admin</div><div class="text-error text-xs font-label">PANNEAU DE CONTRÔLE</div></div>
+    </div>
+  </div>
+  <nav class="flex-1 p-3 space-y-0.5">
+    <a href="/admin/index.html" class="flex items-center gap-3 px-3 py-2.5 rounded text-sm text-on-surface-variant hover:bg-surface-container-high transition-all"><span class="material-symbols-rounded text-xl">dashboard</span> Dashboard</a>
+    <a href="/admin/users.html" class="flex items-center gap-3 px-3 py-2.5 rounded text-sm text-on-surface-variant hover:bg-surface-container-high transition-all"><span class="material-symbols-rounded text-xl">group</span> Membres</a>
+    <a href="/admin/schedule.html" class="flex items-center gap-3 px-3 py-2.5 rounded text-sm text-on-surface-variant hover:bg-surface-container-high transition-all"><span class="material-symbols-rounded text-xl">calendar_month</span> Planning</a>
+    <a href="/admin/training.html" class="flex items-center gap-3 px-3 py-2.5 rounded text-sm text-on-surface-variant hover:bg-surface-container-high transition-all"><span class="material-symbols-rounded text-xl">school</span> Formation</a>
+    <a href="/admin/projects.html" class="flex items-center gap-3 px-3 py-2.5 rounded text-sm text-on-surface-variant hover:bg-surface-container-high transition-all"><span class="material-symbols-rounded text-xl">rocket_launch</span> Projets</a>
+    <a href="/admin/theme.html" class="flex items-center gap-3 px-3 py-2.5 rounded text-sm bg-primary/10 text-primary font-medium"><span class="material-symbols-rounded text-xl">palette</span> Thème</a>
+  </nav>
+</aside>
+
+<div class="flex-1 min-w-0">
+  <header class="sticky top-0 z-20 bg-background/90 backdrop-blur-sm border-b border-outline-variant/20 px-6 py-3 flex items-center justify-between">
+    <div>
+      <div class="font-serif font-bold text-on-surface italic">Personnalisation du Thème</div>
+      <div class="text-on-surface-variant text-xs font-label">[ PALETTE DE COULEURS ]</div>
+    </div>
+    <div class="flex gap-2">
+      <button onclick="resetToDefault()" class="flex items-center gap-2 bg-surface-container border border-outline-variant/20 text-on-surface-variant px-4 py-2 rounded text-sm font-label hover:bg-surface-container-high transition-all">
+        <span class="material-symbols-rounded text-base">restart_alt</span> Réinitialiser
+      </button>
+      <button onclick="saveTheme()" class="flex items-center gap-2 bg-primary-container text-background font-semibold px-4 py-2 rounded text-sm font-label hover:brightness-110 transition-all">
+        <span class="material-symbols-rounded text-base">save</span> Sauvegarder
+      </button>
+    </div>
+  </header>
+
+  <main class="p-6 blueprint-grid">
+    <div class="grid lg:grid-cols-2 gap-6">
+
+      <!-- Color pickers -->
+      <div class="space-y-4">
+        <div class="bg-surface-container-low border border-outline-variant/20 rounded-xl p-5">
+          <h3 class="font-label text-sm text-on-surface-variant uppercase tracking-wider mb-4">Couleurs principales</h3>
+          <div class="space-y-3">
+            <div class="color-row" data-key="primary">
+              <label class="text-sm text-on-surface">Primaire</label>
+              <p class="text-xs text-on-surface-variant font-label">Éléments principaux, liens actifs</p>
+            </div>
+            <div class="color-row" data-key="primaryContainer">
+              <label class="text-sm text-on-surface">Conteneur primaire</label>
+              <p class="text-xs text-on-surface-variant font-label">Boutons d'action, badges</p>
+            </div>
+            <div class="color-row" data-key="secondary">
+              <label class="text-sm text-on-surface">Secondaire</label>
+              <p class="text-xs text-on-surface-variant font-label">XP, niveaux, Modélisation 3D</p>
+            </div>
+            <div class="color-row" data-key="tertiary">
+              <label class="text-sm text-on-surface">Tertiaire</label>
+              <p class="text-xs text-on-surface-variant font-label">Succès, Électronique</p>
+            </div>
+            <div class="color-row" data-key="error">
+              <label class="text-sm text-on-surface">Erreur / Admin</label>
+              <p class="text-xs text-on-surface-variant font-label">Avertissements, panneau admin</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-surface-container-low border border-outline-variant/20 rounded-xl p-5">
+          <h3 class="font-label text-sm text-on-surface-variant uppercase tracking-wider mb-4">Arrière-plans</h3>
+          <div class="space-y-3">
+            <div class="color-row" data-key="background">
+              <label class="text-sm text-on-surface">Fond principal</label>
+              <p class="text-xs text-on-surface-variant font-label">Fond de page</p>
+            </div>
+            <div class="color-row" data-key="surfaceContainerLowest">
+              <label class="text-sm text-on-surface">Surface (la plus basse)</label>
+              <p class="text-xs text-on-surface-variant font-label">Inputs, champs de formulaire</p>
+            </div>
+            <div class="color-row" data-key="surfaceContainerLow">
+              <label class="text-sm text-on-surface">Surface basse</label>
+              <p class="text-xs text-on-surface-variant font-label">Sidebar, cartes principales</p>
+            </div>
+            <div class="color-row" data-key="surfaceContainer">
+              <label class="text-sm text-on-surface">Surface</label>
+              <p class="text-xs text-on-surface-variant font-label">Conteneurs intermédiaires</p>
+            </div>
+            <div class="color-row" data-key="surfaceContainerHigh">
+              <label class="text-sm text-on-surface">Surface haute</label>
+              <p class="text-xs text-on-surface-variant font-label">Hover, éléments survolés</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-surface-container-low border border-outline-variant/20 rounded-xl p-5">
+          <h3 class="font-label text-sm text-on-surface-variant uppercase tracking-wider mb-4">Texte & Contours</h3>
+          <div class="space-y-3">
+            <div class="color-row" data-key="onSurface">
+              <label class="text-sm text-on-surface">Texte principal</label>
+              <p class="text-xs text-on-surface-variant font-label">Titres, contenu principal</p>
+            </div>
+            <div class="color-row" data-key="onSurfaceVariant">
+              <label class="text-sm text-on-surface">Texte secondaire</label>
+              <p class="text-xs text-on-surface-variant font-label">Labels, métadonnées</p>
+            </div>
+            <div class="color-row" data-key="outline">
+              <label class="text-sm text-on-surface">Contour</label>
+              <p class="text-xs text-on-surface-variant font-label">Bordures visibles</p>
+            </div>
+            <div class="color-row" data-key="outlineVariant">
+              <label class="text-sm text-on-surface">Contour subtil</label>
+              <p class="text-xs text-on-surface-variant font-label">Séparateurs, divisions légères</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div class="space-y-4">
+        <div class="bg-surface-container-low border border-outline-variant/20 rounded-xl p-5">
+          <h3 class="font-label text-sm text-on-surface-variant uppercase tracking-wider mb-4">Aperçu</h3>
+          <div id="preview" class="rounded-lg overflow-hidden border border-outline-variant/20">
+            <!-- Preview will be rendered by JS -->
+          </div>
+        </div>
+
+        <div class="bg-surface-container-low border border-outline-variant/20 rounded-xl p-5">
+          <h3 class="font-label text-sm text-on-surface-variant uppercase tracking-wider mb-3">Thèmes prédéfinis</h3>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="applyPreset('default')" class="text-left bg-surface-container border border-outline-variant/20 rounded p-3 hover:border-primary/30 transition-all">
+              <div class="flex gap-1 mb-2">
+                <div class="w-4 h-4 rounded-full" style="background:#c3f5ff"></div>
+                <div class="w-4 h-4 rounded-full" style="background:#f4bb92"></div>
+                <div class="w-4 h-4 rounded-full" style="background:#d2f5e0"></div>
+              </div>
+              <div class="text-xs font-label text-on-surface">Défaut (Dr Stone)</div>
+            </button>
+            <button onclick="applyPreset('ocean')" class="text-left bg-surface-container border border-outline-variant/20 rounded p-3 hover:border-primary/30 transition-all">
+              <div class="flex gap-1 mb-2">
+                <div class="w-4 h-4 rounded-full" style="background:#7dd3fc"></div>
+                <div class="w-4 h-4 rounded-full" style="background:#c084fc"></div>
+                <div class="w-4 h-4 rounded-full" style="background:#6ee7b7"></div>
+              </div>
+              <div class="text-xs font-label text-on-surface">Océan</div>
+            </button>
+            <button onclick="applyPreset('ember')" class="text-left bg-surface-container border border-outline-variant/20 rounded p-3 hover:border-primary/30 transition-all">
+              <div class="flex gap-1 mb-2">
+                <div class="w-4 h-4 rounded-full" style="background:#fca5a5"></div>
+                <div class="w-4 h-4 rounded-full" style="background:#fcd34d"></div>
+                <div class="w-4 h-4 rounded-full" style="background:#86efac"></div>
+              </div>
+              <div class="text-xs font-label text-on-surface">Braise</div>
+            </button>
+            <button onclick="applyPreset('mono')" class="text-left bg-surface-container border border-outline-variant/20 rounded p-3 hover:border-primary/30 transition-all">
+              <div class="flex gap-1 mb-2">
+                <div class="w-4 h-4 rounded-full" style="background:#e2e8f0"></div>
+                <div class="w-4 h-4 rounded-full" style="background:#94a3b8"></div>
+                <div class="w-4 h-4 rounded-full" style="background:#64748b"></div>
+              </div>
+              <div class="text-xs font-label text-on-surface">Monochrome</div>
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-surface-container-low border border-outline-variant/20 rounded-xl p-5">
+          <h3 class="font-label text-sm text-on-surface-variant uppercase tracking-wider mb-3">Nom du thème</h3>
+          <input type="text" id="theme-name" value="Thème TekBot" class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-3 py-2.5 text-on-surface text-sm focus:outline-none focus:border-primary/60 transition-all">
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  const DEFAULTS = {
+    primary: '#c3f5ff', primaryContainer: '#00e5ff', primaryFixedDim: '#00daf3',
+    secondary: '#f4bb92', secondaryContainer: '#653d1e', tertiary: '#d2f5e0',
+    background: '#111415', surface: '#111415',
+    surfaceContainerLowest: '#0c0e10', surfaceContainerLow: '#1a1c1e',
+    surfaceContainer: '#1e2022', surfaceContainerHigh: '#282a2c', surfaceContainerHighest: '#333537',
+    onSurface: '#e0e3e4', onSurfaceVariant: '#bfc8ca',
+    outline: '#849396', outlineVariant: '#3b494c', error: '#ffb4ab'
+  };
+
+  const PRESETS = {
+    default: { ...DEFAULTS },
+    ocean: {
+      primary: '#7dd3fc', primaryContainer: '#0284c7', primaryFixedDim: '#0ea5e9',
+      secondary: '#c084fc', secondaryContainer: '#4c1d95', tertiary: '#6ee7b7',
+      background: '#0c1117', surface: '#0c1117',
+      surfaceContainerLowest: '#080d12', surfaceContainerLow: '#111827',
+      surfaceContainer: '#1e293b', surfaceContainerHigh: '#273449', surfaceContainerHighest: '#334155',
+      onSurface: '#e0e7ef', onSurfaceVariant: '#94a3b8',
+      outline: '#64748b', outlineVariant: '#1e3a5f', error: '#fca5a5'
+    },
+    ember: {
+      primary: '#fca5a5', primaryContainer: '#dc2626', primaryFixedDim: '#ef4444',
+      secondary: '#fcd34d', secondaryContainer: '#78350f', tertiary: '#86efac',
+      background: '#150e0e', surface: '#150e0e',
+      surfaceContainerLowest: '#0f0808', surfaceContainerLow: '#1f1311',
+      surfaceContainer: '#251715', surfaceContainerHigh: '#2e1e1b', surfaceContainerHighest: '#3a2523',
+      onSurface: '#f1e0de', onSurfaceVariant: '#c9a8a4',
+      outline: '#8c6560', outlineVariant: '#4a2f2c', error: '#ffb4ab'
+    },
+    mono: {
+      primary: '#e2e8f0', primaryContainer: '#94a3b8', primaryFixedDim: '#64748b',
+      secondary: '#94a3b8', secondaryContainer: '#1e293b', tertiary: '#64748b',
+      background: '#0f1117', surface: '#0f1117',
+      surfaceContainerLowest: '#090b0e', surfaceContainerLow: '#161a21',
+      surfaceContainer: '#1e2330', surfaceContainerHigh: '#252b37', surfaceContainerHighest: '#2e3545',
+      onSurface: '#e2e8f0', onSurfaceVariant: '#94a3b8',
+      outline: '#64748b', outlineVariant: '#2d3748', error: '#fca5a5'
+    }
+  };
+
+  let currentConfig = { ...DEFAULTS };
+
+  function buildColorRows() {
+    document.querySelectorAll('.color-row').forEach(row => {
+      const key = row.dataset.key;
+      const label = row.querySelector('label');
+      const desc = row.querySelector('p');
+
+      row.innerHTML = '';
+      row.className = 'flex items-center justify-between gap-3';
+
+      const textDiv = document.createElement('div');
+      textDiv.className = 'flex-1 min-w-0';
+      textDiv.appendChild(label);
+      textDiv.appendChild(desc);
+
+      const controls = document.createElement('div');
+      controls.className = 'flex items-center gap-2 flex-shrink-0';
+
+      const swatch = document.createElement('div');
+      swatch.className = 'w-8 h-8 rounded border border-outline-variant/30 overflow-hidden cursor-pointer';
+      swatch.id = `swatch-${key}`;
+
+      const colorInput = document.createElement('input');
+      colorInput.type = 'color';
+      colorInput.className = 'w-full h-full';
+      colorInput.value = currentConfig[key] || '#ffffff';
+      colorInput.addEventListener('input', (e) => {
+        currentConfig[key] = e.target.value;
+        textInput.value = e.target.value;
+        updatePreview();
+      });
+
+      swatch.appendChild(colorInput);
+
+      const textInput = document.createElement('input');
+      textInput.type = 'text';
+      textInput.className = 'w-24 bg-surface-container-lowest border border-outline-variant/30 rounded px-2 py-1 text-on-surface text-xs font-label focus:outline-none focus:border-primary/60 transition-all';
+      textInput.value = currentConfig[key] || '#ffffff';
+      textInput.addEventListener('input', (e) => {
+        if (/^#[0-9a-f]{6}$/i.test(e.target.value)) {
+          currentConfig[key] = e.target.value;
+          colorInput.value = e.target.value;
+          updatePreview();
+        }
+      });
+
+      controls.appendChild(swatch);
+      controls.appendChild(textInput);
+      row.appendChild(textDiv);
+      row.appendChild(controls);
+    });
+  }
+
+  function updateColorInputs() {
+    document.querySelectorAll('.color-row').forEach(row => {
+      const key = row.dataset.key;
+      const colorInput = row.querySelector('input[type="color"]');
+      const textInput = row.querySelector('input[type="text"]');
+      if (colorInput) colorInput.value = currentConfig[key] || '#ffffff';
+      if (textInput) textInput.value = currentConfig[key] || '#ffffff';
+    });
+  }
+
+  function updatePreview() {
+    const c = currentConfig;
+    document.getElementById('preview').innerHTML = `
+      <div style="background:${c.surfaceContainerLow}; padding:16px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:${c.surfaceContainerHigh};display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:14px;color:${c.primary};font-family:sans-serif">T</span>
+          </div>
+          <div>
+            <div style="font-size:14px;font-weight:700;color:${c.onSurface};font-family:serif;font-style:italic">TekBot</div>
+            <div style="font-size:10px;color:${c.onSurfaceVariant};font-family:sans-serif;letter-spacing:0.1em">INTRANET</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+          <div style="background:${c.surfaceContainer};border:1px solid ${c.outlineVariant};border-radius:8px;padding:10px;">
+            <div style="font-size:10px;color:${c.onSurfaceVariant};margin-bottom:4px;font-family:sans-serif;text-transform:uppercase;letter-spacing:0.1em">Membres</div>
+            <div style="font-size:22px;font-weight:700;color:${c.onSurface};font-family:serif">12</div>
+            <div style="font-size:10px;color:${c.primary};font-family:sans-serif">8 onboardés</div>
+          </div>
+          <div style="background:${c.surfaceContainer};border:1px solid ${c.outlineVariant};border-radius:8px;padding:10px;">
+            <div style="font-size:10px;color:${c.onSurfaceVariant};margin-bottom:4px;font-family:sans-serif;text-transform:uppercase;letter-spacing:0.1em">Projets</div>
+            <div style="font-size:22px;font-weight:700;color:${c.onSurface};font-family:serif">3</div>
+            <div style="font-size:10px;color:${c.secondary};font-family:sans-serif">2 actifs</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button style="flex:1;background:${c.primaryContainer};color:${c.background};border:none;border-radius:4px;padding:8px;font-size:12px;font-family:sans-serif;font-weight:600;cursor:pointer">Action primaire</button>
+          <button style="flex:1;background:${c.surfaceContainer};color:${c.onSurfaceVariant};border:1px solid ${c.outlineVariant};border-radius:4px;padding:8px;font-size:12px;font-family:sans-serif;cursor:pointer">Secondaire</button>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span style="background:${c.primary}22;color:${c.primary};border:1px solid ${c.primary}44;border-radius:4px;padding:2px 8px;font-size:10px;font-family:sans-serif">Informatique</span>
+          <span style="background:${c.secondary}22;color:${c.secondary};border:1px solid ${c.secondary}44;border-radius:4px;padding:2px 8px;font-size:10px;font-family:sans-serif">Modélisation 3D</span>
+          <span style="background:${c.tertiary}22;color:${c.tertiary};border:1px solid ${c.tertiary}44;border-radius:4px;padding:2px 8px;font-size:10px;font-family:sans-serif">Électronique</span>
+        </div>
+      </div>`;
+  }
+
+  function applyPreset(name) {
+    currentConfig = { ...PRESETS[name] };
+    updateColorInputs();
+    updatePreview();
+    showToast(`Thème "${name}" appliqué`, 'success');
+  }
+
+  function resetToDefault() {
+    applyPreset('default');
+    document.getElementById('theme-name').value = 'Thème TekBot';
+  }
+
+  async function saveTheme() {
+    const name = document.getElementById('theme-name').value || 'Thème TekBot';
+    try {
+      await API.put('/api/admin/theme', { name, config: currentConfig });
+      showToast('Thème sauvegardé !', 'success');
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  async function init() {
+    await requireAdmin();
+    buildColorRows();
+    updatePreview();
+
+    try {
+      const theme = await API.get('/api/admin/theme');
+      if (theme && theme.config && Object.keys(theme.config).length > 0) {
+        currentConfig = { ...DEFAULTS, ...theme.config };
+        if (theme.name) document.getElementById('theme-name').value = theme.name;
+        updateColorInputs();
+        updatePreview();
+      }
+    } catch(e) {}
+  }
+
+  init();
+</script>
+</body>
+</html>

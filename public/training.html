@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TekBot — Formation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Space+Grotesk:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'primary': '#c3f5ff', 'primary-container': '#00e5ff', 'secondary': '#f4bb92',
+            'secondary-container': '#653d1e', 'tertiary': '#d2f5e0', 'error': '#ffb4ab',
+            'background': '#111415', 'surface-container-lowest': '#0c0e10',
+            'surface-container-low': '#1a1c1e', 'surface-container': '#1e2022',
+            'surface-container-high': '#282a2c', 'surface-container-highest': '#333537',
+            'on-surface': '#e0e3e4', 'on-surface-variant': '#bfc8ca',
+            'outline': '#849396', 'outline-variant': '#3b494c',
+          },
+          fontFamily: { serif: ['"Noto Serif"', 'serif'], label: ['"Space Grotesk"', 'sans-serif'], body: ['Inter', 'sans-serif'] },
+          borderRadius: { DEFAULT: '0.25rem', lg: '0.5rem', xl: '1rem', full: '9999px' }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #111415; font-family: 'Inter', sans-serif; }
+    .material-symbols-rounded { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .blueprint-grid { background-image: radial-gradient(circle, rgba(132,147,150,0.06) 1px, transparent 1px); background-size: 24px 24px; }
+    #sidebar { width: 260px; min-height: 100vh; position: sticky; top: 0; }
+    @media (max-width: 768px) { #sidebar { display: none; } }
+    .module-card { transition: all 0.25s ease; }
+    .module-card:hover:not(.locked) { transform: translateY(-2px); }
+    .module-card.locked { filter: grayscale(0.5); cursor: not-allowed; }
+    @keyframes unlock { 0% { transform: scale(0.95); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+    .just-unlocked { animation: unlock 0.4s ease; }
+  </style>
+</head>
+<body class="min-h-screen bg-background text-on-surface flex">
+
+<div id="sidebar" class="bg-surface-container-low border-r border-outline-variant/20 flex-shrink-0"></div>
+
+<div class="flex-1 min-w-0">
+  <header class="sticky top-0 z-20 bg-background/90 backdrop-blur-sm border-b border-outline-variant/20 px-6 py-3 flex items-center justify-between">
+    <div>
+      <div class="font-serif font-bold text-on-surface italic">Formation</div>
+      <div class="text-on-surface-variant text-xs font-label">[ MODULES D'APPRENTISSAGE ]</div>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="bg-surface-container-low border border-outline-variant/20 rounded px-3 py-1.5 flex items-center gap-2">
+        <span class="material-symbols-rounded text-tertiary text-base">school</span>
+        <span class="text-xs font-label text-on-surface"><span id="progress-pct">0</span>% complété</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="p-6 blueprint-grid min-h-[calc(100vh-57px)]">
+
+    <!-- Companion intro -->
+    <div id="companion-box" class="bg-surface-container-low border border-outline-variant/20 rounded-xl p-4 mb-6 flex items-center gap-4">
+      <div class="text-3xl" id="companion-emoji">🧪</div>
+      <div class="flex-1">
+        <div class="text-xs font-label text-on-surface-variant mb-0.5" id="companion-name">Senku</div>
+        <p class="text-on-surface text-sm" id="companion-msg">Chargement...</p>
+      </div>
+    </div>
+
+    <!-- Progress overview -->
+    <div class="bg-surface-container-low border border-outline-variant/20 rounded-xl p-5 mb-6">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-serif text-lg font-bold text-on-surface italic">Ma Progression</h2>
+        <div class="text-xs font-label text-on-surface-variant"><span id="watched-count">0</span>/<span id="total-count">0</span> modules validés</div>
+      </div>
+      <div class="h-3 bg-surface-container-high rounded-full overflow-hidden mb-2">
+        <div class="h-full bg-tertiary rounded-full transition-all duration-1000" id="main-progress-bar" style="width: 0%"></div>
+      </div>
+      <div class="flex gap-6 text-xs font-label text-on-surface-variant">
+        <span class="flex items-center gap-1"><span class="material-symbols-rounded text-xs text-tertiary">check_circle</span> Quiz réussi</span>
+        <span class="flex items-center gap-1"><span class="material-symbols-rounded text-xs text-secondary">play_circle</span> Vidéo vue</span>
+        <span class="flex items-center gap-1"><span class="material-symbols-rounded text-xs text-outline">lock</span> Verrouillé</span>
+      </div>
+    </div>
+
+    <!-- Modules list -->
+    <div id="modules-grid" class="space-y-4"></div>
+
+  </main>
+</div>
+
+<!-- Video + Quiz modal -->
+<div id="module-modal" class="hidden fixed inset-0 z-50 flex items-start justify-center p-4 bg-background/90 backdrop-blur-sm overflow-y-auto">
+  <div class="bg-surface-container-low border border-outline-variant/30 rounded-xl w-full max-w-3xl mt-4 shadow-2xl">
+    <div class="flex items-center justify-between p-5 border-b border-outline-variant/20">
+      <h3 class="font-serif font-bold text-on-surface text-lg" id="module-title">Module</h3>
+      <button onclick="closeModule()" class="text-on-surface-variant hover:text-on-surface p-1">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </div>
+
+    <!-- Tab switcher -->
+    <div class="flex border-b border-outline-variant/20">
+      <button onclick="showTab('video')" id="tab-video" class="flex-1 py-3 text-sm font-label flex items-center justify-center gap-2 text-primary border-b-2 border-primary">
+        <span class="material-symbols-rounded text-base">play_circle</span> Vidéo
+      </button>
+      <button onclick="showTab('quiz')" id="tab-quiz" class="flex-1 py-3 text-sm font-label flex items-center justify-center gap-2 text-on-surface-variant" id="quiz-tab-btn">
+        <span class="material-symbols-rounded text-base">quiz</span> Quiz
+      </button>
+    </div>
+
+    <!-- Video tab -->
+    <div id="tab-video-content" class="p-5">
+      <div class="relative pb-[56.25%] bg-background rounded overflow-hidden mb-4">
+        <iframe id="video-frame" class="absolute inset-0 w-full h-full" frameborder="0" allowfullscreen></iframe>
+      </div>
+      <p class="text-on-surface-variant text-sm mb-4" id="video-desc"></p>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2 text-xs font-label text-on-surface-variant">
+          <span class="material-symbols-rounded text-sm">schedule</span>
+          <span id="video-duration"></span>
+        </div>
+        <button onclick="markWatched()" id="watch-btn" class="flex items-center gap-2 bg-tertiary/10 text-tertiary border border-tertiary/30 rounded px-4 py-2 text-sm font-label hover:bg-tertiary/20 transition-all">
+          <span class="material-symbols-rounded text-base">check</span> J'ai regardé la vidéo
+        </button>
+      </div>
+    </div>
+
+    <!-- Quiz tab -->
+    <div id="tab-quiz-content" class="hidden p-5">
+      <div id="quiz-locked-msg" class="hidden text-center py-8">
+        <span class="material-symbols-rounded text-5xl text-outline/50">lock</span>
+        <p class="text-on-surface-variant text-sm mt-3 font-label">Regarde la vidéo pour débloquer le quiz</p>
+      </div>
+      <div id="quiz-passed-msg" class="hidden text-center py-6">
+        <span class="material-symbols-rounded text-5xl text-tertiary">verified</span>
+        <h4 class="text-tertiary font-serif text-xl font-bold mt-2">Quiz réussi !</h4>
+        <p class="text-on-surface-variant text-sm mt-1 font-label">Score : <span id="best-score-display">0</span>%</p>
+      </div>
+      <div id="quiz-content">
+        <div id="quiz-questions"></div>
+        <div class="hidden mt-4" id="quiz-results">
+          <div class="bg-surface-container border border-outline-variant/20 rounded p-4 mb-4">
+            <div class="text-center mb-3">
+              <div class="font-serif text-3xl font-bold" id="result-score"></div>
+              <div class="text-sm font-label text-on-surface-variant" id="result-status"></div>
+            </div>
+            <div id="result-details" class="space-y-3"></div>
+          </div>
+          <button onclick="retryQuiz()" class="w-full bg-primary/10 text-primary border border-primary/30 rounded py-2 text-sm font-label hover:bg-primary/20 transition-all flex items-center justify-center gap-2">
+            <span class="material-symbols-rounded text-base">refresh</span> Réessayer
+          </button>
+        </div>
+        <div id="quiz-submit-row" class="hidden mt-4">
+          <button onclick="submitQuiz()" class="w-full bg-primary-container text-background font-semibold rounded py-3 text-sm font-label hover:brightness-110 transition-all flex items-center justify-center gap-2">
+            <span class="material-symbols-rounded">send</span> Soumettre mes réponses
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  loadTheme();
+
+  let modules = [];
+  let currentModule = null;
+  let quizAnswers = {};
+  let currentQuizId = null;
+
+  async function init() {
+    const user = await requireUser();
+    if (!user) return;
+    initNav('/training.html', user);
+
+    const char = CHARACTERS[user.character_id] || CHARACTERS.senku;
+    document.getElementById('companion-emoji').textContent = char.emoji;
+    document.getElementById('companion-name').textContent = char.name;
+
+    const msgs = {
+      kaseki: 'Voilà ton atelier d\'apprentissage ! Chaque module complété t\'apprend quelque chose de nouveau. Regarde bien les vidéos avant de tenter le quiz !',
+      chrome: 'Les ressources sont là pour être utilisées ! Lance-toi dans les modules, regarde les vidéos et prouve que tu mérites de travailler sur nos projets !',
+      senku: '10 milliards de pour cents ! Voici ton programme de formation scientifique. Chaque module validé te rapproche de la maîtrise. Ne saute aucune étape !'
+    };
+    document.getElementById('companion-msg').textContent = msgs[user.character_id] || msgs.senku;
+
+    await loadModules();
+  }
+
+  async function loadModules() {
+    try {
+      const data = await API.get('/api/training/modules');
+      modules = data.videos;
+
+      document.getElementById('progress-pct').textContent = data.completion_percent;
+      document.getElementById('watched-count').textContent = data.passed_count;
+      document.getElementById('total-count').textContent = data.total;
+      document.getElementById('main-progress-bar').style.width = data.completion_percent + '%';
+
+      renderModules();
+    } catch(e) { showToast('Erreur de chargement', 'error'); }
+  }
+
+  function renderModules() {
+    const container = document.getElementById('modules-grid');
+    if (modules.length === 0) {
+      container.innerHTML = `<div class="text-center py-12 text-on-surface-variant">
+        <span class="material-symbols-rounded text-5xl opacity-40">video_library</span>
+        <p class="text-sm mt-3 font-label">Aucun module disponible pour ta spécialisation.</p>
+      </div>`;
+      return;
+    }
+
+    container.innerHTML = modules.map((m, i) => {
+      const isLocked = !m.unlocked;
+      const status = m.quiz_passed ? 'completed' : (m.watched ? 'watched' : (m.unlocked ? 'available' : 'locked'));
+
+      const statusConfig = {
+        completed: { icon: 'verified', color: 'text-tertiary', badge: 'bg-tertiary/10 text-tertiary border-tertiary/30', label: 'Validé' },
+        watched: { icon: 'quiz', color: 'text-primary', badge: 'bg-primary/10 text-primary border-primary/30', label: 'Quiz disponible' },
+        available: { icon: 'play_circle', color: 'text-secondary', badge: 'bg-secondary/10 text-secondary border-secondary/30', label: 'Disponible' },
+        locked: { icon: 'lock', color: 'text-outline', badge: 'bg-outline/10 text-outline border-outline/30', label: 'Verrouillé' }
+      };
+      const sc = statusConfig[status];
+
+      return `<div class="module-card ${isLocked ? 'locked' : ''} bg-surface-container-low border border-outline-variant/20 rounded-xl p-5 ${!isLocked ? 'cursor-pointer hover:border-outline/40' : ''}" ${!isLocked ? `onclick="openModule(${m.id})"` : ''}>
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 flex-shrink-0 rounded bg-surface-container-high flex items-center justify-center">
+            <span class="text-2xl">${i + 1}</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-3 mb-1">
+              <h3 class="font-medium text-on-surface">${m.title}</h3>
+              <span class="flex-shrink-0 text-xs font-label border rounded px-2 py-0.5 flex items-center gap-1 ${sc.badge}">
+                <span class="material-symbols-rounded text-xs">${sc.icon}</span>${sc.label}
+              </span>
+            </div>
+            <p class="text-on-surface-variant text-sm mb-3 line-clamp-2">${m.description || ''}</p>
+            <div class="flex items-center gap-4 text-xs font-label text-on-surface-variant">
+              <span class="flex items-center gap-1"><span class="material-symbols-rounded text-sm">schedule</span>${m.duration_minutes} min</span>
+              ${m.quiz_id ? `<span class="flex items-center gap-1 ${m.best_score ? 'text-tertiary' : ''}">
+                <span class="material-symbols-rounded text-sm">quiz</span>
+                ${m.best_score !== null ? `Score: ${m.best_score}%` : 'Quiz inclus'}
+              </span>` : ''}
+              ${isLocked ? `<span class="flex items-center gap-1 text-outline"><span class="material-symbols-rounded text-sm">lock</span>Complète le module précédent</span>` : ''}
+            </div>
+          </div>
+          ${!isLocked ? `<span class="material-symbols-rounded text-on-surface-variant/40 mt-1">chevron_right</span>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function openModule(videoId) {
+    const m = modules.find(x => x.id === videoId);
+    if (!m || !m.unlocked) return;
+    currentModule = m;
+
+    document.getElementById('module-title').textContent = m.title;
+    document.getElementById('video-frame').src = m.url;
+    document.getElementById('video-desc').textContent = m.description || '';
+    document.getElementById('video-duration').textContent = m.duration_minutes + ' minutes';
+
+    const watchBtn = document.getElementById('watch-btn');
+    if (m.watched) {
+      watchBtn.innerHTML = '<span class="material-symbols-rounded text-base">check_circle</span> Vidéo déjà vue';
+      watchBtn.disabled = true;
+      watchBtn.classList.add('opacity-60');
+    } else {
+      watchBtn.innerHTML = '<span class="material-symbols-rounded text-base">check</span> J\'ai regardé la vidéo';
+      watchBtn.disabled = false;
+      watchBtn.classList.remove('opacity-60');
+    }
+
+    // Setup quiz tab
+    if (m.quiz_id) {
+      document.getElementById('tab-quiz').disabled = false;
+      document.getElementById('tab-quiz').classList.remove('opacity-40');
+    }
+
+    showTab('video');
+    document.getElementById('module-modal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModule() {
+    document.getElementById('module-modal').classList.add('hidden');
+    document.getElementById('video-frame').src = '';
+    document.body.style.overflow = '';
+    currentModule = null;
+    quizAnswers = {};
+    currentQuizId = null;
+    loadModules();
+  }
+
+  function showTab(tab) {
+    document.getElementById('tab-video-content').classList.toggle('hidden', tab !== 'video');
+    document.getElementById('tab-quiz-content').classList.toggle('hidden', tab !== 'quiz');
+    document.getElementById('tab-video').className = `flex-1 py-3 text-sm font-label flex items-center justify-center gap-2 ${tab === 'video' ? 'text-primary border-b-2 border-primary' : 'text-on-surface-variant'}`;
+    document.getElementById('tab-quiz').className = `flex-1 py-3 text-sm font-label flex items-center justify-center gap-2 ${tab === 'quiz' ? 'text-primary border-b-2 border-primary' : 'text-on-surface-variant'}`;
+
+    if (tab === 'quiz' && currentModule?.quiz_id) loadQuiz();
+  }
+
+  async function markWatched() {
+    if (!currentModule) return;
+    try {
+      await API.post(`/api/training/videos/${currentModule.id}/watch`);
+      showToast('Vidéo marquée comme vue ! Quiz débloqué.', 'success');
+      currentModule.watched = true;
+      document.getElementById('watch-btn').innerHTML = '<span class="material-symbols-rounded text-base">check_circle</span> Vidéo vue';
+      document.getElementById('watch-btn').disabled = true;
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  async function loadQuiz() {
+    if (!currentModule?.quiz_id) return;
+    currentQuizId = currentModule.quiz_id;
+
+    try {
+      const quiz = await API.get(`/api/training/quizzes/${currentQuizId}`);
+
+      document.getElementById('quiz-locked-msg').classList.add('hidden');
+      document.getElementById('quiz-passed-msg').classList.add('hidden');
+      document.getElementById('quiz-results').classList.add('hidden');
+      document.getElementById('quiz-submit-row').classList.add('hidden');
+
+      if (quiz.already_passed) {
+        document.getElementById('quiz-passed-msg').classList.remove('hidden');
+        document.getElementById('best-score-display').textContent = quiz.best_attempt?.score || 0;
+        return;
+      }
+
+      quizAnswers = {};
+      document.getElementById('quiz-questions').innerHTML = quiz.questions.map((q, i) => `
+        <div class="mb-6">
+          <p class="text-on-surface font-medium mb-3 text-sm">${i + 1}. ${q.question}</p>
+          <div class="space-y-2" id="q-${q.id}">
+            ${q.options.map((opt, j) => `
+              <label class="flex items-start gap-3 p-3 bg-surface-container border border-outline-variant/20 rounded cursor-pointer hover:border-primary/30 transition-all quiz-option" data-qid="${q.id}" data-val="${j}">
+                <input type="radio" name="q-${q.id}" value="${j}" class="mt-0.5 accent-primary" onchange="selectAnswer(${q.id}, ${j})">
+                <span class="text-on-surface text-sm">${opt}</span>
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+      document.getElementById('quiz-submit-row').classList.remove('hidden');
+    } catch(e) {
+      if (e.message.includes('vidéo')) {
+        document.getElementById('quiz-locked-msg').classList.remove('hidden');
+      } else {
+        showToast(e.message, 'error');
+      }
+    }
+  }
+
+  function selectAnswer(questionId, value) {
+    quizAnswers[questionId] = value;
+  }
+
+  async function submitQuiz() {
+    if (!currentQuizId) return;
+    try {
+      const result = await API.post(`/api/training/quizzes/${currentQuizId}/submit`, { answers: quizAnswers });
+
+      document.getElementById('quiz-submit-row').classList.add('hidden');
+      const resultsEl = document.getElementById('quiz-results');
+      resultsEl.classList.remove('hidden');
+
+      document.getElementById('result-score').textContent = result.score + '%';
+      document.getElementById('result-score').className = `font-serif text-3xl font-bold ${result.passed ? 'text-tertiary' : 'text-error'}`;
+      document.getElementById('result-status').textContent = result.passed ?
+        `✓ Réussi ! ${result.correct}/${result.total} bonnes réponses` :
+        `✗ Raté — ${result.correct}/${result.total} — Score minimum requis: ${currentModule.pass_score || 70}%`;
+
+      document.getElementById('result-details').innerHTML = result.results.map(r => `
+        <div class="flex items-start gap-2 text-sm">
+          <span class="material-symbols-rounded text-base mt-0.5 ${r.is_correct ? 'text-tertiary' : 'text-error'}">${r.is_correct ? 'check_circle' : 'cancel'}</span>
+          <span class="${r.is_correct ? 'text-on-surface' : 'text-on-surface-variant'}">${r.is_correct ? 'Correct' : `Incorrect — Bonne réponse: Option ${r.correct_option + 1}${r.explanation ? '. ' + r.explanation : ''}`}</span>
+        </div>`).join('');
+
+      if (result.xp_gained > 0) {
+        animateXPGain(result.xp_gained, result.level_up);
+        showToast(`+${result.xp_gained} XP gagnés !`, 'xp');
+      }
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  function retryQuiz() {
+    quizAnswers = {};
+    document.getElementById('quiz-results').classList.add('hidden');
+    loadQuiz();
+  }
+
+  document.getElementById('module-modal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('module-modal')) closeModule();
+  });
+
+  init();
+</script>
+</body>
+</html>

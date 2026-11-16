@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TekBot — Laboratoire</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Space+Grotesk:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'primary': '#c3f5ff', 'primary-container': '#00e5ff', 'secondary': '#f4bb92',
+            'secondary-container': '#653d1e', 'tertiary': '#d2f5e0', 'error': '#ffb4ab',
+            'background': '#111415', 'surface-container-lowest': '#0c0e10',
+            'surface-container-low': '#1a1c1e', 'surface-container': '#1e2022',
+            'surface-container-high': '#282a2c', 'surface-container-highest': '#333537',
+            'on-surface': '#e0e3e4', 'on-surface-variant': '#bfc8ca',
+            'outline': '#849396', 'outline-variant': '#3b494c',
+          },
+          fontFamily: { serif: ['"Noto Serif"', 'serif'], label: ['"Space Grotesk"', 'sans-serif'], body: ['Inter', 'sans-serif'] },
+          borderRadius: { DEFAULT: '0.25rem', lg: '0.5rem', xl: '1rem', full: '9999px' }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #111415; font-family: 'Inter', sans-serif; }
+    .material-symbols-rounded { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .blueprint-grid {
+      background-image: radial-gradient(circle, rgba(132,147,150,0.06) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    #sidebar { width: 260px; min-height: 100vh; position: sticky; top: 0; }
+    @media (max-width: 768px) { #sidebar { display: none; } }
+    @keyframes xp-fill { from { width: 0; } to { width: var(--xp-width); } }
+    .xp-bar { animation: xp-fill 1s ease 0.5s both; }
+    .quest-card { transition: all 0.2s ease; }
+    .quest-card:hover { transform: translateY(-2px); }
+  </style>
+</head>
+<body class="min-h-screen bg-background text-on-surface flex">
+
+<!-- Sidebar -->
+<div id="sidebar" class="bg-surface-container-low border-r border-outline-variant/20 flex-shrink-0"></div>
+
+<!-- Main content -->
+<div class="flex-1 min-w-0">
+  <!-- Header -->
+  <header class="sticky top-0 z-20 bg-background/90 backdrop-blur-sm border-b border-outline-variant/20 px-6 py-3 flex items-center justify-between">
+    <div>
+      <div class="font-serif font-bold text-on-surface italic">Laboratoire</div>
+      <div class="text-on-surface-variant text-xs font-label">[ TABLEAU DE BORD ]</div>
+    </div>
+    <div class="flex items-center gap-3">
+      <div id="header-xp" class="hidden md:flex items-center gap-2 bg-surface-container-low border border-outline-variant/20 rounded px-3 py-1.5">
+        <span class="material-symbols-rounded text-primary text-base">stars</span>
+        <span class="text-xs font-label text-on-surface-variant"><span id="xp-val">0</span> XP</span>
+      </div>
+      <div class="bg-surface-container-low border border-outline-variant/20 rounded px-3 py-1.5 flex items-center gap-2">
+        <span class="material-symbols-rounded text-secondary text-base">military_tech</span>
+        <span class="text-xs font-label text-on-surface">LVL <span id="level-val">1</span></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="p-6 blueprint-grid min-h-[calc(100vh-57px)]">
+
+    <!-- Welcome + companion dialogue -->
+    <div id="companion-box" class="bg-surface-container-low border border-outline-variant/20 rounded-xl p-5 mb-6 flex items-start gap-4">
+      <div class="w-12 h-12 flex-shrink-0 rounded-full bg-surface-container-high flex items-center justify-center text-2xl border border-outline-variant/30" id="companion-emoji">🧪</div>
+      <div class="flex-1 min-w-0">
+        <div class="text-xs font-label text-on-surface-variant mb-1" id="companion-name">Senku Ishigami</div>
+        <p class="text-on-surface text-sm leading-relaxed" id="companion-msg">Chargement...</p>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="bg-surface-container-low border border-outline-variant/20 rounded-xl p-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-label text-on-surface-variant uppercase tracking-wider">Niveau</span>
+          <span class="material-symbols-rounded text-secondary text-xl">military_tech</span>
+        </div>
+        <div class="font-serif text-3xl font-bold text-on-surface" id="stat-level">1</div>
+        <div class="text-xs text-on-surface-variant font-label mt-1" id="stat-title">Apprenti Scientifique</div>
+      </div>
+      <div class="bg-surface-container-low border border-outline-variant/20 rounded-xl p-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-label text-on-surface-variant uppercase tracking-wider">XP Total</span>
+          <span class="material-symbols-rounded text-primary text-xl">stars</span>
+        </div>
+        <div class="font-serif text-3xl font-bold text-primary" id="stat-xp">0</div>
+        <div class="text-xs text-on-surface-variant font-label mt-1" id="stat-next">— / — pour le prochain niveau</div>
+      </div>
+      <div class="bg-surface-container-low border border-outline-variant/20 rounded-xl p-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-label text-on-surface-variant uppercase tracking-wider">Formation</span>
+          <span class="material-symbols-rounded text-tertiary text-xl">school</span>
+        </div>
+        <div class="font-serif text-3xl font-bold text-tertiary" id="stat-training">0%</div>
+        <div class="text-xs text-on-surface-variant font-label mt-1">Modules complétés</div>
+      </div>
+      <div class="bg-surface-container-low border border-outline-variant/20 rounded-xl p-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-label text-on-surface-variant uppercase tracking-wider">Activités</span>
+          <span class="material-symbols-rounded text-secondary text-xl">calendar_month</span>
+        </div>
+        <div class="font-serif text-3xl font-bold text-secondary" id="stat-activities">0</div>
+        <div class="text-xs text-on-surface-variant font-label mt-1">À venir cette semaine</div>
+      </div>
+    </div>
+
+    <!-- XP Progress bar -->
+    <div class="bg-surface-container-low border border-outline-variant/20 rounded-xl p-4 mb-6">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm text-on-surface font-medium">Progression vers le niveau <span id="next-level-num">2</span></span>
+        <span class="text-xs font-label text-on-surface-variant"><span id="xp-current">0</span> / <span id="xp-needed">200</span> XP</span>
+      </div>
+      <div class="h-2 bg-surface-container-high rounded-full overflow-hidden">
+        <div class="h-full bg-primary rounded-full xp-bar" id="xp-bar" style="--xp-width: 0%; width: 0%"></div>
+      </div>
+    </div>
+
+    <!-- Grid: Quests + Upcoming -->
+    <div class="grid lg:grid-cols-3 gap-6">
+
+      <!-- Active Quests (2/3) -->
+      <div class="lg:col-span-2">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-serif text-lg font-bold text-on-surface italic">Quêtes Actives</h2>
+          <a href="/schedule.html" class="text-xs font-label text-primary hover:underline flex items-center gap-1">
+            Voir tout <span class="material-symbols-rounded text-sm">arrow_forward</span>
+          </a>
+        </div>
+        <div id="quests-grid" class="grid sm:grid-cols-2 gap-4">
+          <div class="sm:col-span-2 text-center py-8 text-on-surface-variant">
+            <span class="material-symbols-rounded text-4xl opacity-40">hourglass_empty</span>
+            <p class="text-sm mt-2 font-label">Chargement des quêtes...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div class="space-y-5">
+        <!-- Projects -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="font-serif text-lg font-bold text-on-surface italic">Projets</h2>
+            <a href="/projects.html" class="text-xs font-label text-primary hover:underline">Voir tout</a>
+          </div>
+          <div id="projects-preview" class="space-y-3">
+            <div class="text-center py-4 text-on-surface-variant text-sm font-label">Chargement...</div>
+          </div>
+        </div>
+
+        <!-- Training progress -->
+        <div class="bg-surface-container-low border border-outline-variant/20 rounded-xl p-4">
+          <h3 class="font-label text-xs uppercase tracking-wider text-on-surface-variant mb-3">Ma Formation</h3>
+          <div id="training-status">
+            <div class="text-center py-4 text-on-surface-variant text-sm font-label">Chargement...</div>
+          </div>
+          <a href="/training.html" class="mt-3 flex items-center justify-center gap-2 bg-primary/10 text-primary text-sm font-label py-2 rounded hover:bg-primary/20 transition-all">
+            <span class="material-symbols-rounded text-base">school</span> Continuer la formation
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  loadTheme();
+
+  const ACTIVITY_TYPES = {
+    meeting: { icon: 'videocam', label: 'Réunion', color: 'text-error' },
+    install: { icon: 'download', label: 'Installation', color: 'text-secondary' },
+    training: { icon: 'school', label: 'Formation', color: 'text-tertiary' },
+    quiz: { icon: 'quiz', label: 'Quiz', color: 'text-primary' },
+    project: { icon: 'build', label: 'Projet', color: 'text-secondary' },
+    other: { icon: 'event', label: 'Activité', color: 'text-on-surface-variant' }
+  };
+
+  async function init() {
+    const user = await requireUser();
+    if (!user) return;
+    if (!user.onboarding_complete) { window.location.href = '/onboarding.html'; return; }
+
+    initNav('/dashboard.html', user);
+    document.getElementById('xp-val').textContent = user.xp;
+    document.getElementById('level-val').textContent = user.level;
+    document.getElementById('header-xp').classList.remove('hidden');
+
+    const char = CHARACTERS[user.character_id] || CHARACTERS.senku;
+    document.getElementById('companion-emoji').textContent = char.emoji;
+    document.getElementById('companion-name').textContent = char.name + ' — ' + char.tagline;
+
+    const messages = {
+      kaseki: `Ah, te voilà enfin ${user.name} ! Ton atelier numérique t'attend. Regarde tes quêtes du jour... chaque tâche accomplie te rapproche de la maîtrise !`,
+      chrome: `Hé ${user.name} ! J'ai déjà préparé les ressources pour aujourd'hui. Les circuits ne vont pas se souder tout seuls ! Voyons ce qu'on a à faire...`,
+      senku: `${user.name} ! 10 milliards de pour cents, tu es là. Voici ton rapport de mission. Chaque XP gagné est un pas de plus vers le progrès de l'humanité !`
+    };
+    document.getElementById('companion-msg').textContent = messages[user.character_id] || messages.senku;
+
+    document.getElementById('stat-level').textContent = user.level;
+    document.getElementById('stat-title').textContent = user.level_title || 'Apprenti';
+    document.getElementById('stat-xp').textContent = user.xp;
+    document.getElementById('xp-current').textContent = user.xp;
+    document.getElementById('next-level-num').textContent = user.level + 1;
+
+    if (user.xp_for_next) {
+      document.getElementById('xp-needed').textContent = user.xp_for_next;
+      document.getElementById('stat-next').textContent = `${user.xp_for_next - user.xp} XP pour le prochain`;
+      const pct = Math.min(100, (user.xp / user.xp_for_next) * 100);
+      setTimeout(() => {
+        const bar = document.getElementById('xp-bar');
+        bar.style.setProperty('--xp-width', pct + '%');
+        bar.style.width = pct + '%';
+      }, 100);
+    }
+
+    loadActivities();
+    loadTraining();
+    loadProjects();
+  }
+
+  async function loadActivities() {
+    try {
+      const acts = await API.get('/api/schedule');
+      const now = new Date();
+      const weekEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const upcoming = acts.filter(a => {
+        const t = new Date(a.scheduled_start || a.start_time);
+        return t >= now && t <= weekEnd && !a.completed;
+      }).slice(0, 4);
+
+      document.getElementById('stat-activities').textContent = upcoming.length;
+
+      const grid = document.getElementById('quests-grid');
+      if (upcoming.length === 0) {
+        grid.innerHTML = `<div class="sm:col-span-2 text-center py-8 text-on-surface-variant">
+          <span class="material-symbols-rounded text-4xl opacity-40">check_circle</span>
+          <p class="text-sm mt-2 font-label">Aucune activité cette semaine — Profites-en pour avancer ta formation !</p>
+        </div>`;
+        return;
+      }
+
+      grid.innerHTML = upcoming.map((a, i) => {
+        const type = ACTIVITY_TYPES[a.type] || ACTIVITY_TYPES.other;
+        const date = new Date(a.scheduled_start || a.start_time);
+        const isFirst = i === 0;
+        const mandatory = a.is_mandatory;
+
+        return `<div class="quest-card bg-surface-container-low border border-outline-variant/20 rounded-xl p-4 cursor-pointer hover:border-primary/30" onclick="showQuestDialogue(${JSON.stringify(a).replace(/"/g, '&quot;')})">
+          <div class="flex items-start justify-between gap-3 mb-3">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-rounded ${type.color} text-xl">${type.icon}</span>
+              <span class="text-xs font-label ${type.color} uppercase">${type.label}</span>
+            </div>
+            ${mandatory ? '<span class="text-xs font-label text-error flex items-center gap-1"><span class="material-symbols-rounded text-sm">lock</span>Obligatoire</span>' : '<span class="text-xs font-label text-on-surface-variant">Flexible</span>'}
+          </div>
+          <h3 class="font-medium text-on-surface text-sm mb-2 leading-snug">${a.title}</h3>
+          <div class="flex items-center gap-2 text-xs text-on-surface-variant font-label">
+            <span class="material-symbols-rounded text-sm">schedule</span>
+            ${date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
+            à ${date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+          </div>
+          ${a.url ? `<a href="${a.url}" target="_blank" onclick="event.stopPropagation()" class="mt-3 flex items-center gap-1 text-xs text-primary hover:underline">
+            <span class="material-symbols-rounded text-sm">open_in_new</span> Ouvrir le lien
+          </a>` : ''}
+        </div>`;
+      }).join('');
+    } catch(e) { console.error(e); }
+  }
+
+  function showQuestDialogue(activity) {
+    const char = activity.presenter_character || 'senku';
+    const text = activity.dialogue_text || `Nouvelle quête : ${activity.title}. ${activity.description || ''}`;
+    createDialogue(char, text);
+  }
+
+  async function loadTraining() {
+    try {
+      const data = await API.get('/api/training/modules');
+      const el = document.getElementById('training-status');
+      document.getElementById('stat-training').textContent = data.completion_percent + '%';
+
+      if (data.videos.length === 0) {
+        el.innerHTML = '<p class="text-sm text-on-surface-variant font-label">Aucun module disponible</p>';
+        return;
+      }
+
+      const next = data.videos.find(v => v.unlocked && !v.quiz_passed);
+      el.innerHTML = `
+        <div class="flex items-center justify-between text-xs font-label text-on-surface-variant mb-2">
+          <span>${data.passed_count}/${data.total} modules</span>
+          <span>${data.completion_percent}%</span>
+        </div>
+        <div class="h-1.5 bg-surface-container-high rounded-full overflow-hidden mb-3">
+          <div class="h-full bg-tertiary rounded-full" style="width: ${data.completion_percent}%"></div>
+        </div>
+        ${next ? `<div class="text-sm text-on-surface">
+          <span class="text-tertiary font-label text-xs">PROCHAINE LEÇON :</span><br>
+          <span class="font-medium">${next.title}</span>
+        </div>` : '<div class="text-tertiary text-sm font-label">✓ Tous les modules complétés !</div>'}
+      `;
+    } catch(e) {}
+  }
+
+  async function loadProjects() {
+    try {
+      const projects = await API.get('/api/projects');
+      const el = document.getElementById('projects-preview');
+      const myProjects = projects.filter(p => p.is_member).slice(0, 2);
+      const openProjects = projects.filter(p => !p.is_member && p.status === 'open').slice(0, 2);
+
+      const all = [...myProjects, ...openProjects].slice(0, 3);
+      if (all.length === 0) {
+        el.innerHTML = '<p class="text-sm text-on-surface-variant font-label text-center py-4">Aucun projet disponible</p>';
+        return;
+      }
+
+      el.innerHTML = all.map(p => `
+        <a href="/project-detail.html?id=${p.id}" class="block bg-surface-container-low border border-outline-variant/20 rounded-xl p-4 hover:border-primary/30 transition-all">
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <h4 class="text-sm font-medium text-on-surface leading-tight">${p.title}</h4>
+            ${p.is_member ? '<span class="flex-shrink-0 text-xs font-label text-tertiary bg-tertiary/10 px-2 py-0.5 rounded">Membre</span>' : '<span class="flex-shrink-0 text-xs font-label text-primary bg-primary/10 px-2 py-0.5 rounded">Ouvert</span>'}
+          </div>
+          <div class="h-1 bg-surface-container-high rounded-full overflow-hidden">
+            <div class="h-full bg-secondary rounded-full" style="width: ${p.filled_slots / p.total_slots * 100}%"></div>
+          </div>
+          <div class="text-xs text-on-surface-variant font-label mt-1">${p.filled_slots}/${p.total_slots} membres</div>
+        </a>`).join('');
+    } catch(e) {}
+  }
+
+  init();
+</script>
+</body>
+</html>
